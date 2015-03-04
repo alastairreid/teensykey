@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "usb_keyboard.h"
 
-#define NUMCOLS 12
+#define NUMCOLS 11
 #define NUMROWS 4
 #define NUMKEYS (NUMCOLS * NUMROWS)
 
@@ -61,24 +61,41 @@ void scan_keyboard() {
     }
 }
 
+// This macro relates the physical layout of the keys to their position
+// in the key matrix
+#define LAYER( \
+    K00, K01, K02, K03, K04,           K05, K06, K07, K08, K09, \
+    K10, K11, K12, K13, K14,           K15, K16, K17, K18, K19, \
+    K20, K21, K22, K23, K24,           K25, K26, K27, K28, K29, \
+    K30, K31, K32, K33, K34, K35, K36, K37, K38, K39, K3A, K3B  \
+) { \
+    K3B, K3A, K39, K38, K37, K36, K34, K33, K32, K31, K30, \
+    K29, K28, K27, K26, K25, K35, K24, K23, K22, K21, K20, \
+    K19, K18, K17, K16, K15, 0,   K14, K13, K12, K11, K10, \
+    K09, K08, K07, K06, K05, 0,   K04, K03, K02, K01, K00  \
+}
+
+#define LSHIFT MODIFIERKEY_LEFT_SHIFT
+#define RSHIFT MODIFIERKEY_RIGHT_SHIFT
+
 KEYCODE_TYPE layers[][NUMKEYS] = {
     // Dvorak
-    {
-    KEY_QUOTE,     KEY_COMMA, KEY_PERIOD, KEY_P,         KEY_Y,     0, 0, KEY_F,     KEY_G,    KEY_C,    KEY_R,  KEY_L,
-    KEY_A,         KEY_O,     KEY_E,      KEY_U,         KEY_I,     0, 0, KEY_D,     KEY_H,    KEY_T,    KEY_N,  KEY_S,
-    KEY_SEMICOLON, KEY_Q,     KEY_J,      KEY_K,         KEY_X,     0, 0, KEY_B,     KEY_M,    KEY_W,    KEY_V,  KEY_Z,
-    KEY_ESC,       KEY_TAB,   KEY_TAB,    KEY_BACKSPACE, KEY_ENTER, 0, 0, KEY_SPACE, KEY_LEFT, KEY_DOWN, KEY_UP, KEY_RIGHT
-    },
+    LAYER(
+    KEY_QUOTE,     KEY_COMMA, KEY_PERIOD, KEY_P,         KEY_Y,                     KEY_F,     KEY_G,    KEY_C,    KEY_R,  KEY_L,
+    KEY_A,         KEY_O,     KEY_E,      KEY_U,         KEY_I,                     KEY_D,     KEY_H,    KEY_T,    KEY_N,  KEY_S,
+    KEY_SEMICOLON, KEY_Q,     KEY_J,      KEY_K,         KEY_X,                     KEY_B,     KEY_M,    KEY_W,    KEY_V,  KEY_Z,
+    KEY_ESC,       KEY_TAB,   KEY_TAB,    KEY_BACKSPACE, KEY_ENTER, LSHIFT, RSHIFT, KEY_SPACE, KEY_LEFT, KEY_DOWN, KEY_UP, KEY_RIGHT
+    ),
     // Qwerty
-    {
-    KEY_Q,         KEY_W,     KEY_E,      KEY_R,         KEY_T,     0, 0, KEY_U,     KEY_I,    KEY_O,    KEY_P,  KEY_LEFT_BRACE,
-    KEY_A,         KEY_S,     KEY_D,      KEY_F,         KEY_G,     0, 0, KEY_H,     KEY_J,    KEY_K,    KEY_L,  KEY_SEMICOLON,
-    KEY_Z,         KEY_X,     KEY_C,      KEY_V,         KEY_B,     0, 0, KEY_N,     KEY_M,    KEY_COMMA,KEY_PERIOD,  KEY_SLASH,
-    KEY_ESC,       KEY_TAB,   KEY_TAB,    KEY_BACKSPACE, KEY_ENTER, 0, 0, KEY_SPACE, KEY_LEFT, KEY_DOWN, KEY_UP, KEY_RIGHT
-    }
+    LAYER(
+    KEY_Q,         KEY_W,     KEY_E,      KEY_R,         KEY_T,                     KEY_U,     KEY_I,    KEY_O,    KEY_P,  KEY_LEFT_BRACE,
+    KEY_A,         KEY_S,     KEY_D,      KEY_F,         KEY_G,                     KEY_H,     KEY_J,    KEY_K,    KEY_L,  KEY_SEMICOLON,
+    KEY_Z,         KEY_X,     KEY_C,      KEY_V,         KEY_B,                     KEY_N,     KEY_M,    KEY_COMMA,KEY_PERIOD,  KEY_SLASH,
+    KEY_ESC,       KEY_TAB,   KEY_TAB,    KEY_BACKSPACE, KEY_ENTER, LSHIFT, RSHIFT, KEY_SPACE, KEY_LEFT, KEY_DOWN, KEY_UP, KEY_RIGHT
+    )
 };
 
-int current_layer = 1;
+int current_layer = 0;
 
 // decode and send keys to USB
 void decode() {
