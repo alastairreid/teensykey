@@ -77,25 +77,27 @@ void scan_keyboard() {
 
 #define LSHIFT MODIFIERKEY_LEFT_SHIFT
 #define RSHIFT MODIFIERKEY_RIGHT_SHIFT
+#define LCTRL MODIFIERKEY_LEFT_CTRL
+#define RCTRL MODIFIERKEY_RIGHT_CTRL
 
-KEYCODE_TYPE layers[][NUMKEYS] = {
-    // Dvorak
+const KEYCODE_TYPE layers[][NUMKEYS] = {
+    // Hardware Dvorak
     LAYER(
     KEY_QUOTE,     KEY_COMMA, KEY_PERIOD, KEY_P,         KEY_Y,                     KEY_F,     KEY_G,    KEY_C,    KEY_R,  KEY_L,
     KEY_A,         KEY_O,     KEY_E,      KEY_U,         KEY_I,                     KEY_D,     KEY_H,    KEY_T,    KEY_N,  KEY_S,
     KEY_SEMICOLON, KEY_Q,     KEY_J,      KEY_K,         KEY_X,                     KEY_B,     KEY_M,    KEY_W,    KEY_V,  KEY_Z,
-    KEY_ESC,       KEY_TAB,   KEY_TAB,    KEY_BACKSPACE, KEY_ENTER, LSHIFT, RSHIFT, KEY_SPACE, KEY_LEFT, KEY_DOWN, KEY_UP, KEY_RIGHT
+    KEY_ESC,       KEY_TAB,   LCTRL,      KEY_BACKSPACE, KEY_ENTER, LSHIFT, RSHIFT, KEY_SPACE, KEY_LEFT, KEY_DOWN, KEY_UP, KEY_RIGHT
     ),
-    // Qwerty
+    // Qwerty / Software Dvorak
     LAYER(
-    KEY_Q,         KEY_W,     KEY_E,      KEY_R,         KEY_T,                     KEY_U,     KEY_I,    KEY_O,    KEY_P,  KEY_LEFT_BRACE,
+    KEY_Q,         KEY_W,     KEY_E,      KEY_R,         KEY_T,                     KEY_Y,     KEY_U,    KEY_I,    KEY_O,  KEY_P,
     KEY_A,         KEY_S,     KEY_D,      KEY_F,         KEY_G,                     KEY_H,     KEY_J,    KEY_K,    KEY_L,  KEY_SEMICOLON,
     KEY_Z,         KEY_X,     KEY_C,      KEY_V,         KEY_B,                     KEY_N,     KEY_M,    KEY_COMMA,KEY_PERIOD,  KEY_SLASH,
-    KEY_ESC,       KEY_TAB,   KEY_TAB,    KEY_BACKSPACE, KEY_ENTER, LSHIFT, RSHIFT, KEY_SPACE, KEY_LEFT, KEY_DOWN, KEY_UP, KEY_RIGHT
+    KEY_ESC,       KEY_TAB,   LCTRL,      KEY_BACKSPACE, KEY_ENTER, LSHIFT, RSHIFT, KEY_SPACE, KEY_LEFT, KEY_DOWN, KEY_UP, KEY_RIGHT
     )
 };
 
-int current_layer = 0;
+int current_layer = 1;
 
 // decode and send keys to USB
 void decode() {
