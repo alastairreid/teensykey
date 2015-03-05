@@ -119,15 +119,23 @@ void decode() {
             // ignore anything else
         }
     }
-    // whatever we have, send it
-    // todo: only do this if something changed since last time
-    // to avoid swamping USB
-    usb_keyboard_send();
 }
+
+// Record previous send - to avoid sending same message twice in a row
+uint8_t prev_modifiers;
+uint8_t prev_keys[6];
 
 // the loop function runs over and over again forever
 void loop() {
     scan_keyboard();
     decode();
+
+    if (prev_modifiers != keyboard_modifier_keys
+       || memcmp(prev_keys, keyboard_keys, 6)) {
+        prev_modifiers = keyboard_modifier_keys;
+        memcpy(prev_keys, keyboard_keys, 6);
+        usb_keyboard_send();
+    }
+
     delay(10); // sample at 100Hz
 }
