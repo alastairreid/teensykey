@@ -7,7 +7,7 @@
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-    // columns are on pins 0 .. 11, active low
+    // columns are on pins 0 .. 10, active low
     pinMode(0, INPUT_PULLUP);
     pinMode(1, INPUT_PULLUP);
     pinMode(2, INPUT_PULLUP);
@@ -19,7 +19,6 @@ void setup() {
     pinMode(8, INPUT_PULLUP);
     pinMode(9, INPUT_PULLUP);
     pinMode(10,INPUT_PULLUP);
-    pinMode(11,INPUT_PULLUP);
 
     // rows are on pins 14 .. 17, high to start with
     pinMode(14, OUTPUT);
