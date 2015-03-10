@@ -5,6 +5,10 @@
 #define NUMROWS 4
 #define NUMKEYS (NUMCOLS * NUMROWS)
 
+static void scan_keyboard();
+static void decode();
+
+
 // the setup function runs once when you press reset or power the board
 void setup() {
     // columns are on pins 0 .. 10, active low
@@ -39,12 +43,12 @@ void setup() {
 }
 
 // all the keys currently pressed (list of raw keycodes)
-int raw_count = 0;
-int raw_keys[NUMKEYS];
+static int raw_count = 0;
+static int raw_keys[NUMKEYS];
 
 // Scan all keys for pressed keys
 // Writes to raw_keys
-void scan_keyboard() {
+static void scan_keyboard() {
     raw_count = 0;
     // Rows are on pins 14 .. 17 inclusive
     for(int row = 0; row < NUMROWS; ++row) {
@@ -79,7 +83,7 @@ void scan_keyboard() {
 #define LCTRL MODIFIERKEY_LEFT_CTRL
 #define RCTRL MODIFIERKEY_RIGHT_CTRL
 
-const KEYCODE_TYPE layers[][NUMKEYS] = {
+static const KEYCODE_TYPE layers[][NUMKEYS] = {
     // Hardware Dvorak
     LAYER(
     KEY_QUOTE,     KEY_COMMA, KEY_PERIOD, KEY_P,         KEY_Y,                     KEY_F,     KEY_G,    KEY_C,    KEY_R,  KEY_L,
@@ -96,10 +100,10 @@ const KEYCODE_TYPE layers[][NUMKEYS] = {
     )
 };
 
-int current_layer = 1;
+static int current_layer = 1;
 
 // decode and send keys to USB
-void decode() {
+static void decode() {
     int count = 0;
     keyboard_modifier_keys = 0;
     for(int i = 0; i < 6; ++i) {
@@ -121,8 +125,8 @@ void decode() {
 }
 
 // Record previous send - to avoid sending same message twice in a row
-uint8_t prev_modifiers;
-uint8_t prev_keys[6];
+static uint8_t prev_modifiers;
+static uint8_t prev_keys[6];
 
 // the loop function runs over and over again forever
 void loop() {
