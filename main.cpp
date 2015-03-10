@@ -5,7 +5,15 @@
 #define NUMROWS 4
 #define NUMKEYS (NUMCOLS * NUMROWS)
 
+#define DEBOUNCE_TIMEOUT 1
+
+static inline void raw_key_press(uint8_t key);
+static boolean test_key(int rawkey);
 static void scan_keyboard();
+static void clear_keys();
+static void press_key(uint8_t key);
+static void release_key(uint8_t key);
+static void send_keys();
 static void decode();
 
 
@@ -40,11 +48,32 @@ void setup() {
     pinMode(13,OUTPUT);
     digitalWrite(13, 0);
 #endif
+
+    clear_keys();
 }
 
-// all the keys currently pressed (list of raw keycodes)
-static int raw_count = 0;
-static int raw_keys[NUMKEYS];
+// Keys are debounced by starting a timeout when a key is pressed.
+// If the timeout is non-zero, we send a key press
+// When the timeout counts down to zero, we send a key release
+static uint8_t timeouts[NUMKEYS];
+
+// list of keys that changed state in last scan (list of raw keycodes, bit 7 set if released)
+static uint8_t raw_count = 0;
+static uint16_t raw_keys[NUMKEYS];
+
+static inline void raw_key_press(uint8_t key) {
+    raw_keys[raw_count++] = key;
+}
+
+// Test if key is currently pressed
+static boolean test_key(int rawkey) {
+    for(int i = 0; i < raw_count; ++i) {
+        if (raw_keys[i] == rawkey) {
+            return true;
+        }
+    }
+    return timeouts[rawkey] != 0;
+}
 
 // Scan all keys for pressed keys
 // Writes to raw_keys
@@ -56,8 +85,21 @@ static void scan_keyboard() {
         delayMicroseconds(50);
         // Columns are on pins 0 .. 11 inclusive
         for(int col = 0; col < NUMCOLS; ++col) {
-            if (!digitalRead(col)) {
-                raw_keys[raw_count++] = row * NUMCOLS + col;
+            int key = row * NUMCOLS + col;
+            int timeout = timeouts[key];
+            if (!digitalRead(col)) { // pressed down
+                if (timeout == 0) {
+                    raw_key_press(key | 0x80); // newly pressed
+                }
+                timeouts[key] = DEBOUNCE_TIMEOUT;
+            } else { // not pressed
+                if (timeout > 0) { // previously pressed
+                    --timeout;
+                    timeouts[key] = timeout;
+                    if (timeout == 0) {
+                        raw_key_press(key); // newly released
+                    }
+                }
             }
         }
         digitalWrite(14+row, HIGH);
@@ -144,23 +186,55 @@ static const KEYCODE_TYPE layers[][NUMKEYS] = {
     )
 };
 
-static int current_layer = 1;
 
-// decode and send keys to USB
-static void decode() {
-    int count = 0;
+static void clear_keys() {
     keyboard_modifier_keys = 0;
     for(int i = 0; i < 6; ++i) {
         keyboard_keys[i] = 0;
     }
+}
+
+static void press_key(uint8_t key) {
+    for(int i = 0; i < 6; ++i) {
+        if (keyboard_keys[i] == 0) {
+            keyboard_keys[i] = key;
+            return;
+        }
+    }
+}
+
+static void release_key(uint8_t key) {
+    for(int i = 0; i < 6; ++i) {
+        if (keyboard_keys[i] == key) {
+            keyboard_keys[i] = 0;
+        }
+    }
+}
+
+static void send_keys() {
+    usb_keyboard_send();
+}
+
+static int current_layer = 1;
+
+// decode and send keys to USB
+static void decode() {
     for(int i = 0; i < raw_count; ++i) {
         int raw = raw_keys[i];
+        boolean down = raw & 0x80;
+        raw = raw & 0x7f;
         KEYCODE_TYPE keycode = layers[current_layer][raw];
         if (IS_MODIFIER(keycode)) { // modifier key
-            keyboard_modifier_keys |= (keycode & 0xff);
+            if (down) {
+                keyboard_modifier_keys |= (keycode & 0xff);
+            } else {
+                keyboard_modifier_keys &= ~(keycode & 0xff);
+            }
         } else if (IS_NORMAL(keycode)) { // normal key
-            if (count < 6) {
-                keyboard_keys[count++] = keycode & 0xff;
+            if (down) {
+                press_key(keycode & 0xff);
+            } else {
+                release_key(keycode & 0xff);
             }
         } else {
             // ignore anything else
@@ -177,12 +251,16 @@ void loop() {
     scan_keyboard();
     decode();
 
+#if 0
     if (prev_modifiers != keyboard_modifier_keys
        || memcmp(prev_keys, keyboard_keys, 6)) {
         prev_modifiers = keyboard_modifier_keys;
         memcpy(prev_keys, keyboard_keys, 6);
         usb_keyboard_send();
     }
+#else
+    send_keys();
+#endif
 
     delay(10); // sample at 100Hz
 }
