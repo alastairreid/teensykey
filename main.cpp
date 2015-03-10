@@ -78,6 +78,50 @@ static void scan_keyboard() {
     K09, K08, K07, K06, K05, 0,   K04, K03, K02, K01, K00  \
 }
 
+// Modifier numbers - in same order as MODIFIERKEY_* in Teensy library
+#define LEFT_CTRL   0
+#define LEFT_SHIFT  1
+#define LEFT_ALT    2
+#define LEFT_GUI    3
+#define RIGHT_CTRL  4
+#define RIGHT_SHIFT 5
+#define RIGHT_ALT   6
+#define RIGHT_GUI   7
+
+// In the teensy firmware, keys are represented by a 16-bit number
+// We extend this scheme by using some of the unused encodings
+// - bit 15 - set if it is a modifier
+//            bits 0-7  = 1 << M (M is modifier number)
+// - bit 14 - set if it is a normal key
+//            bits 0-7  = which key
+// - bit 11 - set if it has a modifier
+//            bits 0-7  = which key is held
+//            bits 8-10 = which modifier is held
+//            [This is not part of the Teensy firmware]
+#define IS_MODIFIER(k) ((k) & 0x8000)
+#define IS_NORMAL(k)   ((k) & 0x4000)
+#define IS_MODKEY(k)   ((k) & 0x0800)
+
+#define SHIFT(k) (0x0800 | (k) | (LEFT_SHIFT << 8))
+
+#define KEY_BACKQUOTE   SHIFT(KEY_TILDE)
+#define KEY_BANG        SHIFT(KEY_1)
+#define KEY_SPLAT       SHIFT(KEY_2)
+#define KEY_HASH        SHIFT(KEY_3)
+#define KEY_DOLLAR      SHIFT(KEY_4)
+#define KEY_PERCENT     SHIFT(KEY_5)
+#define KEY_CARET       SHIFT(KEY_6)
+#define KEY_AMPERSAND   SHIFT(KEY_7)
+#define KEY_STAR        SHIFT(KEY_8)
+#define KEY_LEFT_PAREN  SHIFT(KEY_9)
+#define KEY_RIGHT_PAREN SHIFT(KEY_0)
+#define KEY_PLUS        SHIFT(KEY_EQUAL)
+#define KEY_UNDERSCORE  SHIFT(KEY_MINUS)
+#define KEY_QUERY       SHIFT(KEY_SLASH)
+#define KEY_PIPE        SHIFT(KEY_BACKSLASH)
+#define KEY_LEFT_CURL   SHIFT(KEY_LEFT_BRACE)
+#define KEY_RIGHT_CURL  SHIFT(KEY_RIGHT_BRACE)
+
 #define LSHIFT MODIFIERKEY_LEFT_SHIFT
 #define RSHIFT MODIFIERKEY_RIGHT_SHIFT
 #define LCTRL MODIFIERKEY_LEFT_CTRL
@@ -112,9 +156,9 @@ static void decode() {
     for(int i = 0; i < raw_count; ++i) {
         int raw = raw_keys[i];
         KEYCODE_TYPE keycode = layers[current_layer][raw];
-        if (keycode & 0x8000) { // modifier key
+        if (IS_MODIFIER(keycode)) { // modifier key
             keyboard_modifier_keys |= (keycode & 0xff);
-        } else if (keycode & 0x4000) { // normal key
+        } else if (IS_NORMAL(keycode)) { // normal key
             if (count < 6) {
                 keyboard_keys[count++] = keycode & 0xff;
             }
