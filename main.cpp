@@ -106,6 +106,34 @@ static void scan_keyboard() {
     }
 }
 
+static void clear_keys() {
+    keyboard_modifier_keys = 0;
+    for(int i = 0; i < 6; ++i) {
+        keyboard_keys[i] = 0;
+    }
+}
+
+static void press_key(uint8_t key) {
+    for(int i = 0; i < 6; ++i) {
+        if (keyboard_keys[i] == 0) {
+            keyboard_keys[i] = key;
+            return;
+        }
+    }
+}
+
+static void release_key(uint8_t key) {
+    for(int i = 0; i < 6; ++i) {
+        if (keyboard_keys[i] == key) {
+            keyboard_keys[i] = 0;
+        }
+    }
+}
+
+static void send_keys() {
+    usb_keyboard_send();
+}
+
 // This macro relates the physical layout of the keys to their position
 // in the key matrix
 #define LAYER( \
@@ -144,8 +172,10 @@ static void scan_keyboard() {
 #define IS_NORMAL(k)   ((k) & 0x4000)
 #define IS_MODKEY(k)   ((k) & 0x0800)
 
-#define SHIFT(k) (0x0800 | (k) | (LEFT_SHIFT << 8))
+#define MODKEY(k,m) (0x0800 | (k) | ((m) << 8))
+#define SHIFT(k) MODKEY(k, LEFT_SHIFT)
 
+#define KEY_DOUBLEQUOTE SHIFT(KEY_QUOTE)
 #define KEY_BACKQUOTE   SHIFT(KEY_TILDE)
 #define KEY_BANG        SHIFT(KEY_1)
 #define KEY_SPLAT       SHIFT(KEY_2)
@@ -170,52 +200,58 @@ static void scan_keyboard() {
 #define RCTRL MODIFIERKEY_RIGHT_CTRL
 
 static const KEYCODE_TYPE layers[][NUMKEYS] = {
+    // Qwerty / Software Dvorak
+    [0] =
+    LAYER(
+    KEY_Q,         KEY_W,     KEY_E,      KEY_R,         KEY_T,                     KEY_Y,     KEY_U,    KEY_I,    KEY_O,       KEY_P,
+    KEY_A,         KEY_S,     KEY_D,      KEY_F,         KEY_G,                     KEY_H,     KEY_J,    KEY_K,    KEY_L,       KEY_SEMICOLON,
+    KEY_Z,         KEY_X,     KEY_C,      KEY_V,         KEY_B,                     KEY_N,     KEY_M,    KEY_COMMA,KEY_PERIOD,  KEY_SLASH,
+    KEY_ESC,       KEY_TAB,   LCTRL,      KEY_BACKSPACE, KEY_ENTER, LSHIFT, RSHIFT, KEY_SPACE, KEY_LEFT, KEY_DOWN, KEY_UP,      KEY_RIGHT
+    ),
+
+    // Punctuation (for Software Dvorak)
+    [1] =
+    LAYER(
+    KEY_TILDE, KEY_BACKQUOTE, KEY_RIGHT_BRACE, KEY_RIGHT_CURL, 0,               0,         KEY_QUOTE,     KEY_DOUBLEQUOTE, KEY_UNDERSCORE, KEY_PLUS,
+    KEY_BANG,      KEY_SPLAT, KEY_HASH,        KEY_DOLLAR,     KEY_PERCENT,     KEY_CARET, KEY_AMPERSAND, KEY_STAR,        KEY_LEFT_PAREN, KEY_RIGHT_PAREN,
+    0,             0,         KEY_LEFT_CURL,   KEY_LEFT_BRACE, 0,               0,         KEY_BACKSLASH, KEY_PIPE,        KEY_MINUS,      KEY_EQUAL,
+    KEY_ESC,       KEY_TAB,   LCTRL,           KEY_BACKSPACE,  KEY_ENTER, 0, 0, KEY_SPACE, KEY_LEFT,      KEY_DOWN,        KEY_UP,         KEY_RIGHT
+    ),
+
+    // Numbers
+    [2] =
+    LAYER(
+    0,             0,         0,          0,             0,                 0,         0,        0,        0,      0,
+    KEY_1,         KEY_2,     KEY_3,      KEY_4,         KEY_5,             KEY_6,     KEY_7,    KEY_8,    KEY_9,  KEY_0,
+    0,             0,         0,          0,             0,                 0,         0,        0,        0,      0,
+    0,             0,         0,          0,             0,       0, 0,     0,         0,        0,        0,      0
+    )
+
+#if 0
     // Hardware Dvorak
+    [3] =
     LAYER(
     KEY_QUOTE,     KEY_COMMA, KEY_PERIOD, KEY_P,         KEY_Y,                     KEY_F,     KEY_G,    KEY_C,    KEY_R,  KEY_L,
     KEY_A,         KEY_O,     KEY_E,      KEY_U,         KEY_I,                     KEY_D,     KEY_H,    KEY_T,    KEY_N,  KEY_S,
     KEY_SEMICOLON, KEY_Q,     KEY_J,      KEY_K,         KEY_X,                     KEY_B,     KEY_M,    KEY_W,    KEY_V,  KEY_Z,
     KEY_ESC,       KEY_TAB,   LCTRL,      KEY_BACKSPACE, KEY_ENTER, LSHIFT, RSHIFT, KEY_SPACE, KEY_LEFT, KEY_DOWN, KEY_UP, KEY_RIGHT
     ),
-    // Qwerty / Software Dvorak
+
+    // Punctuation (for Qwerty and Hardware Dvorak)
+    [4] =
     LAYER(
-    KEY_Q,         KEY_W,     KEY_E,      KEY_R,         KEY_T,                     KEY_Y,     KEY_U,    KEY_I,    KEY_O,  KEY_P,
-    KEY_A,         KEY_S,     KEY_D,      KEY_F,         KEY_G,                     KEY_H,     KEY_J,    KEY_K,    KEY_L,  KEY_SEMICOLON,
-    KEY_Z,         KEY_X,     KEY_C,      KEY_V,         KEY_B,                     KEY_N,     KEY_M,    KEY_COMMA,KEY_PERIOD,  KEY_SLASH,
-    KEY_ESC,       KEY_TAB,   LCTRL,      KEY_BACKSPACE, KEY_ENTER, LSHIFT, RSHIFT, KEY_SPACE, KEY_LEFT, KEY_DOWN, KEY_UP, KEY_RIGHT
-    )
+    KEY_TILDE, KEY_BACKQUOTE, KEY_EQUAL,  KEY_PLUS,      0,                 0,         KEY_MINUS,     KEY_UNDERSCORE,KEY_LEFT_CURL,  KEY_RIGHT_CURL,
+    KEY_BANG,      KEY_SPLAT, KEY_HASH,   KEY_DOLLAR,    KEY_PERCENT,       KEY_CARET, KEY_AMPERSAND, KEY_STAR, KEY_LEFT_PAREN,  KEY_RIGHT_PAREN,
+    0,             0,         KEY_QUERY,  KEY_SLASH,     0,                 0,         KEY_BACKSLASH, KEY_PIPE, KEY_LEFT_BRACE,  KEY_RIGHT_BRACE,
+    KEY_ESC,       KEY_TAB,   LCTRL,      KEY_BACKSPACE, KEY_ENTER, 0, 0, KEY_SPACE, KEY_LEFT, KEY_DOWN, KEY_UP, KEY_RIGHT
+    ),
+#endif
 };
 
+#define NUM_LAYERS (sizeof(layers) / sizeof(layers[0]))
+// #define NUM_LAYERS 5
 
-static void clear_keys() {
-    keyboard_modifier_keys = 0;
-    for(int i = 0; i < 6; ++i) {
-        keyboard_keys[i] = 0;
-    }
-}
-
-static void press_key(uint8_t key) {
-    for(int i = 0; i < 6; ++i) {
-        if (keyboard_keys[i] == 0) {
-            keyboard_keys[i] = key;
-            return;
-        }
-    }
-}
-
-static void release_key(uint8_t key) {
-    for(int i = 0; i < 6; ++i) {
-        if (keyboard_keys[i] == key) {
-            keyboard_keys[i] = 0;
-        }
-    }
-}
-
-static void send_keys() {
-    usb_keyboard_send();
-}
-
-static int current_layer = 1;
+static int current_layer = 0;
 
 // decode and send keys to USB
 static void decode() {
@@ -224,7 +260,9 @@ static void decode() {
         boolean down = raw & 0x80;
         raw = raw & 0x7f;
         KEYCODE_TYPE keycode = layers[current_layer][raw];
-        if (IS_MODIFIER(keycode)) { // modifier key
+        if (raw == 5) { // left shift key
+            current_layer = (current_layer + 1) % NUM_LAYERS;
+        } else if (IS_MODIFIER(keycode)) { // modifier key
             if (down) {
                 keyboard_modifier_keys |= (keycode & 0xff);
             } else {
@@ -235,6 +273,14 @@ static void decode() {
                 press_key(keycode & 0xff);
             } else {
                 release_key(keycode & 0xff);
+            }
+            if (IS_MODKEY(keycode)) {
+                uint8_t mod = (keycode >> 8) & 0x7;
+                if (down) {
+                    keyboard_modifier_keys |= (1 << mod);
+                } else {
+                    keyboard_modifier_keys &= ~(1 << mod);
+                }
             }
         } else {
             // ignore anything else
