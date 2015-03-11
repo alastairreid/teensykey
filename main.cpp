@@ -203,19 +203,19 @@ static const KEYCODE_TYPE layers[][NUMKEYS] = {
     // Qwerty / Software Dvorak
     [0] =
     LAYER(
-    KEY_Q,         KEY_W,     KEY_E,      KEY_R,         KEY_T,                     KEY_Y,     KEY_U,    KEY_I,    KEY_O,       KEY_P,
-    KEY_A,         KEY_S,     KEY_D,      KEY_F,         KEY_G,                     KEY_H,     KEY_J,    KEY_K,    KEY_L,       KEY_SEMICOLON,
-    KEY_Z,         KEY_X,     KEY_C,      KEY_V,         KEY_B,                     KEY_N,     KEY_M,    KEY_COMMA,KEY_PERIOD,  KEY_SLASH,
-    KEY_ESC,       KEY_TAB,   LCTRL,      KEY_BACKSPACE, KEY_ENTER, LSHIFT, RSHIFT, KEY_SPACE, KEY_LEFT, KEY_DOWN, KEY_UP,      KEY_RIGHT
+    KEY_Q,         KEY_W,     KEY_E,      KEY_R,         KEY_T,             KEY_Y,     KEY_U,    KEY_I,    KEY_O,       KEY_P,
+    KEY_A,         KEY_S,     KEY_D,      KEY_F,         KEY_G,             KEY_H,     KEY_J,    KEY_K,    KEY_L,       KEY_SEMICOLON,
+    KEY_Z,         KEY_X,     KEY_C,      KEY_V,         KEY_B,             KEY_N,     KEY_M,    KEY_COMMA,KEY_PERIOD,  KEY_SLASH,
+    0,             0,         0,          0,             0,       0, 0,     0,         0,        0,        0,      0
     ),
 
     // Punctuation (for Software Dvorak)
     [1] =
     LAYER(
-    KEY_TILDE, KEY_BACKQUOTE, KEY_RIGHT_BRACE, KEY_RIGHT_CURL, 0,               0,         KEY_QUOTE,     KEY_DOUBLEQUOTE, KEY_UNDERSCORE, KEY_PLUS,
-    KEY_BANG,      KEY_SPLAT, KEY_HASH,        KEY_DOLLAR,     KEY_PERCENT,     KEY_CARET, KEY_AMPERSAND, KEY_STAR,        KEY_LEFT_PAREN, KEY_RIGHT_PAREN,
-    0,             0,         KEY_LEFT_CURL,   KEY_LEFT_BRACE, 0,               0,         KEY_BACKSLASH, KEY_PIPE,        KEY_MINUS,      KEY_EQUAL,
-    KEY_ESC,       KEY_TAB,   LCTRL,           KEY_BACKSPACE,  KEY_ENTER, 0, 0, KEY_SPACE, KEY_LEFT,      KEY_DOWN,        KEY_UP,         KEY_RIGHT
+    KEY_TILDE, KEY_BACKQUOTE, KEY_RIGHT_BRACE, KEY_RIGHT_CURL, 0,           0,         KEY_QUOTE,     KEY_DOUBLEQUOTE, KEY_UNDERSCORE, KEY_PLUS,
+    KEY_BANG,      KEY_SPLAT, KEY_HASH,        KEY_DOLLAR,     KEY_PERCENT, KEY_CARET, KEY_AMPERSAND, KEY_STAR,        KEY_LEFT_PAREN, KEY_RIGHT_PAREN,
+    0,             0,         KEY_LEFT_CURL,   KEY_LEFT_BRACE, 0,           0,         KEY_BACKSLASH, KEY_PIPE,        KEY_MINUS,      KEY_EQUAL,
+    0,             0,         0,          0,             0,       0, 0,     0,         0,        0,        0,      0
     ),
 
     // Numbers
@@ -225,6 +225,15 @@ static const KEYCODE_TYPE layers[][NUMKEYS] = {
     KEY_1,         KEY_2,     KEY_3,      KEY_4,         KEY_5,             KEY_6,     KEY_7,    KEY_8,    KEY_9,  KEY_0,
     0,             0,         0,          0,             0,                 0,         0,        0,        0,      0,
     0,             0,         0,          0,             0,       0, 0,     0,         0,        0,        0,      0
+    ),
+
+    // Modifiers
+    [3] =
+    LAYER(
+    0,             0,         0,          0,             0,                 0,         0,        0,        0,      0,
+    0,             0,         0,          0,             0,                 0,         0,        0,        0,      0,
+    0,             0,         0,          0,             0,                 0,         0,        0,        0,      0,
+    KEY_ESC,       KEY_TAB,   LCTRL,           KEY_BACKSPACE,  KEY_ENTER, 0, 0, KEY_SPACE, KEY_LEFT,      KEY_DOWN,        KEY_UP,         KEY_RIGHT
     )
 
 #if 0
@@ -251,7 +260,7 @@ static const KEYCODE_TYPE layers[][NUMKEYS] = {
 #define NUM_LAYERS (sizeof(layers) / sizeof(layers[0]))
 // #define NUM_LAYERS 5
 
-static int current_layer = 0;
+static uint32_t enabled_layers = (1 << 3) | (1 << 0);
 
 // decode and send keys to USB
 static void decode() {
@@ -259,9 +268,19 @@ static void decode() {
         int raw = raw_keys[i];
         boolean down = raw & 0x80;
         raw = raw & 0x7f;
-        KEYCODE_TYPE keycode = layers[current_layer][raw];
-        if (raw == 5) { // left shift key
-            current_layer = (current_layer + 1) % NUM_LAYERS;
+        KEYCODE_TYPE keycode = 0;
+        // search layers for keycode
+        for(int layer = NUM_LAYERS-1; layer >= 0; --layer) {
+            if (enabled_layers & (1 << layer)) {
+                keycode = layers[layer][raw];
+                if (keycode) {
+                    goto found;
+                }
+            }
+        }
+found:
+        if (raw == 5 && down) { // left shift key
+            enabled_layers ^= 2; // toggle punctuation
         } else if (IS_MODIFIER(keycode)) { // modifier key
             if (down) {
                 keyboard_modifier_keys |= (keycode & 0xff);
@@ -302,7 +321,7 @@ void loop() {
        || memcmp(prev_keys, keyboard_keys, 6)) {
         prev_modifiers = keyboard_modifier_keys;
         memcpy(prev_keys, keyboard_keys, 6);
-        usb_keyboard_send();
+        send_keys();
     }
 #else
     send_keys();
