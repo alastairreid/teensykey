@@ -287,6 +287,8 @@ static void release_tapper(uint8_t key, uint8_t mod) {
 //                        Each modifier must be used only once in each layer
 //                        because of the way tapping modifiers are buffered
 //            [This is not part of the Teensy firmware]
+// - bit 12 - set if this key XORs the layer enable bits
+//            bits 0-7  = value to XOR into layer enable mask
 // - bit 11 - set if it has a modifier
 //            bits 0-7  = which key is held
 //            bits 8-10 = which modifier is held
@@ -294,9 +296,11 @@ static void release_tapper(uint8_t key, uint8_t mod) {
 #define IS_MODIFIER(k) ((k) & 0x8000)
 #define IS_NORMAL(k)   ((k) & 0x4000)
 #define IS_TAPPING(k)  ((k) & 0x2000)
+#define IS_LAYERXOR(k) ((k) & 0x1000)
 #define IS_MODKEY(k)   ((k) & 0x0800)
 
 #define TAP(k,m)    (0x2000 | ((m) << 8) | (KEY_##k & 0xff))
+#define LAYERXOR(l) (0x1000 | (l))
 #define MODKEY(k,m) (0x0800 | (k) | ((m) << 8))
 #define SHIFT(k) MODKEY(k, LEFT_SHIFT)
 
@@ -334,22 +338,22 @@ static const KEYCODE_TYPE layers[][NUMKEYS] = {
     0,             0,         0,          0,             0,       0, 0,     0,         0,        0,        0,           0
     ),
 
-    // Punctuation (for Software Dvorak)
+    // Punctuation (for Software Dvorak) on left, numbers on right
     [1] =
     LAYER(
-    KEY_TILDE, KEY_BACKQUOTE, KEY_RIGHT_BRACE, KEY_RIGHT_CURL, 0,           0,         KEY_QUOTE,     KEY_DOUBLEQUOTE, KEY_UNDERSCORE, KEY_PLUS,
-    KEY_BANG,      KEY_SPLAT, KEY_HASH,        KEY_DOLLAR,     KEY_PERCENT, KEY_CARET, KEY_AMPERSAND, KEY_STAR,        KEY_LEFT_PAREN, KEY_RIGHT_PAREN,
-    0,             0,         KEY_LEFT_CURL,   KEY_LEFT_BRACE, 0,           0,         KEY_BACKSLASH, KEY_PIPE,        KEY_MINUS,      KEY_EQUAL,
-    0,             0,         0,               0,              0,   0, 0,   0,         0,             0,               0,              0
+    KEY_TILDE, KEY_BACKQUOTE, KEY_RIGHT_BRACE, KEY_RIGHT_CURL, 0,           0,         0,        0,        0,      0,
+    KEY_BANG,      KEY_SPLAT, KEY_HASH,        KEY_DOLLAR,     KEY_PERCENT, KEY_6,     KEY_7,    KEY_8,    KEY_9,  KEY_0,
+    0,             0,         KEY_LEFT_CURL,   KEY_LEFT_BRACE, 0,           0,         0,        0,        0,      0,
+    0,             0,         0,               0,              0,   0, 0,   0,         0,        0,        0,      0
     ),
 
-    // Numbers
+    // Numbers on left, punctuation on right
     [2] =
     LAYER(
-    0,             0,         0,          0,             0,                 0,         0,        0,        0,      0,
-    KEY_1,         KEY_2,     KEY_3,      KEY_4,         KEY_5,             KEY_6,     KEY_7,    KEY_8,    KEY_9,  KEY_0,
-    0,             0,         0,          0,             0,                 0,         0,        0,        0,      0,
-    0,             0,         0,          0,             0,       0, 0,     0,         0,        0,        0,      0
+    0,             0,         0,          0,             0,                 0,         KEY_QUOTE,     KEY_DOUBLEQUOTE, KEY_UNDERSCORE, KEY_PLUS,
+    KEY_1,         KEY_2,     KEY_3,      KEY_4,         KEY_5,             KEY_CARET, KEY_AMPERSAND, KEY_STAR,        KEY_LEFT_PAREN, KEY_RIGHT_PAREN,
+    0,             0,         0,          0,             0,                 0,         KEY_BACKSLASH, KEY_PIPE,        KEY_MINUS,      KEY_EQUAL,
+    0,             0,         0,          0,             0,       0, 0,     0,         0,             0,               0,              0
     ),
 
     // Modifiers
@@ -362,7 +366,7 @@ static const KEYCODE_TYPE layers[][NUMKEYS] = {
     KEY_ESC,       KEY_TAB,   LCTRL,           KEY_BACKSPACE,  KEY_ENTER, 0, 0, KEY_SPACE, KEY_LEFT,      KEY_DOWN,        KEY_UP,         KEY_RIGHT
 #else
     TAP(ESC,LEFT_SHIFT),   KEY_TAB,             LEFT_ALT,            TAP(BACKSPACE,LEFT_GUI), TAP(ENTER,LEFT_CTRL),
-    0, 0,
+    LAYERXOR(3), LAYERXOR(5),
     TAP(SPACE,RIGHT_CTRL), TAP(LEFT,RIGHT_GUI), TAP(DOWN,RIGHT_ALT), KEY_UP,                  TAP(RIGHT,RIGHT_SHIFT)
 #endif
     )
@@ -415,9 +419,7 @@ static void decode() {
         uint16_t keycode = find_key(raw);
 
         // search layers for keycode
-        if (raw == 5 && down) { // left shift key
-            enabled_layers ^= 2; // toggle punctuation
-        } else if (IS_MODIFIER(keycode)) { // modifier key
+        if (IS_MODIFIER(keycode)) { // modifier key
             if (down) {
                 keyboard_modifier_keys |= (keycode & 0xff);
             } else {
@@ -437,6 +439,13 @@ static void decode() {
                 } else {
                     keyboard_modifier_keys &= ~(1 << mod);
                 }
+            }
+        } else if (IS_LAYERXOR(keycode)) {
+            uint8_t mask = keycode & 0xff;
+            if (down) {
+                enabled_layers ^= mask;
+            } else {
+                enabled_layers ^= mask;
             }
         } else if (IS_TAPPING(keycode)) {
             uint8_t mod = (keycode >> 8) & 0x7;
