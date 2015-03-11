@@ -6,6 +6,7 @@
 #define NUMKEYS (NUMCOLS * NUMROWS)
 
 #define DEBOUNCE_TIMEOUT 1
+#define TAPPER_TIMEOUT   30
 
 static inline void raw_key_press(uint8_t key);
 static boolean test_key(int rawkey);
@@ -14,8 +15,17 @@ static void clear_keys();
 static void press_key(uint8_t key);
 static void release_key(uint8_t key);
 static void send_keys();
+static void clear_tappers();
+static void update_tappers();
+static void resolve_tappers();
+static void press_tapper(uint8_t key, uint8_t mod);
+static void release_tapper(uint8_t key, uint8_t mod);
+static uint16_t find_key(int raw);
 static void decode();
 
+////////////////////////////////////////////////////////////////
+// Arduino entry points
+////////////////////////////////////////////////////////////////
 
 // the setup function runs once when you press reset or power the board
 void setup() {
@@ -50,7 +60,35 @@ void setup() {
 #endif
 
     clear_keys();
+    clear_tappers();
 }
+
+// Record previous send - to avoid sending same message twice in a row
+static uint8_t prev_modifiers;
+static uint8_t prev_keys[6];
+
+// the loop function runs over and over again forever
+void loop() {
+    scan_keyboard();
+    decode();
+
+#if 0
+    if (prev_modifiers != keyboard_modifier_keys
+       || memcmp(prev_keys, keyboard_keys, 6)) {
+        prev_modifiers = keyboard_modifier_keys;
+        memcpy(prev_keys, keyboard_keys, 6);
+        send_keys();
+    }
+#else
+    send_keys();
+#endif
+
+    delay(10); // sample at 100Hz
+}
+
+////////////////////////////////////////////////////////////////
+// Physical keyboard scan/debounce support
+////////////////////////////////////////////////////////////////
 
 // Keys are debounced by starting a timeout when a key is pressed.
 // If the timeout is non-zero, we send a key press
@@ -106,6 +144,10 @@ static void scan_keyboard() {
     }
 }
 
+////////////////////////////////////////////////////////////////
+// USB Keyboard interface
+////////////////////////////////////////////////////////////////
+
 static void clear_keys() {
     keyboard_modifier_keys = 0;
     for(int i = 0; i < 6; ++i) {
@@ -133,6 +175,81 @@ static void release_key(uint8_t key) {
 static void send_keys() {
     usb_keyboard_send();
 }
+
+////////////////////////////////////////////////////////////////
+// Tapping modifier support
+////////////////////////////////////////////////////////////////
+
+// Tapping modifiers are either a normal key or a modifier but we can't tell
+// which until the press times out (it is a normal key) or until a normal key
+// is pressed (it is a modifier).
+// While waiting to resolve, tapping modifiers are buffered
+struct tapping_state {
+    uint8_t key;
+    uint8_t tick;
+    boolean modder;  // is the key acting as a modder?
+};
+#define NUM_TAPPERS 8
+struct tapping_state tappers[NUM_TAPPERS];
+
+static void clear_tappers() {
+    for(int i = 0; i < NUM_TAPPERS; ++i) {
+        tappers[i].tick   = 0;
+        tappers[i].modder = false;
+    }
+}
+
+// decrement timer on each tapper and trigger if timed out
+static void update_tappers() {
+    for(int i = 0; i < NUM_TAPPERS; ++i) {
+        int tick = tappers[i].tick;
+        if (tick) {
+            --tick;
+            tappers[i].tick = tick;
+            if (tick == 0) { // timeout expired
+                press_key(tappers[i].key);
+            }
+        }
+    }
+}
+
+// if a normal key is pressed, all pending tappers are resolved
+static void resolve_tappers() {
+    for(int i = 0; i < NUM_TAPPERS; ++i) {
+        int tick = tappers[i].tick;
+        if (tick) {
+            tappers[i].tick   = 0;
+            tappers[i].modder = true;
+            keyboard_modifier_keys |= 1 << i;
+        }
+    }
+}
+
+// set tapper timer if not already running
+static void press_tapper(uint8_t key, uint8_t mod) {
+    if (tappers[mod].tick == 0) { // not already pressed
+        tappers[mod].key    = key;
+        tappers[mod].tick   = TAPPER_TIMEOUT;
+        tappers[mod].modder = false;
+    }
+}
+
+static void release_tapper(uint8_t key, uint8_t mod) {
+    if (tappers[mod].modder) { // being treated as a modifier
+        tappers[mod].tick   = 0;
+        tappers[mod].modder = false;
+        keyboard_modifier_keys &= ~(1 << mod);
+    } else { // being treated as a tapper
+        tappers[mod].tick   = 0;
+        press_key(tappers[mod].key);
+        send_keys();
+        release_key(tappers[mod].key);
+    }
+}
+
+////////////////////////////////////////////////////////////////
+// Keyboard mapping support
+////////////////////////////////////////////////////////////////
 
 // This macro relates the physical layout of the keys to their position
 // in the key matrix
@@ -164,14 +281,22 @@ static void send_keys() {
 //            bits 0-7  = 1 << M (M is modifier number)
 // - bit 14 - set if it is a normal key
 //            bits 0-7  = which key
+// - bit 13 - set if it is a tapping modifier
+//            bits 0-7  = which key if tapped
+//            bits 8-10 = which modifier if held
+//                        Each modifier must be used only once in each layer
+//                        because of the way tapping modifiers are buffered
+//            [This is not part of the Teensy firmware]
 // - bit 11 - set if it has a modifier
 //            bits 0-7  = which key is held
 //            bits 8-10 = which modifier is held
 //            [This is not part of the Teensy firmware]
 #define IS_MODIFIER(k) ((k) & 0x8000)
 #define IS_NORMAL(k)   ((k) & 0x4000)
+#define IS_TAPPING(k)  ((k) & 0x2000)
 #define IS_MODKEY(k)   ((k) & 0x0800)
 
+#define TAP(k,m)    (0x2000 | ((m) << 8) | (KEY_##k & 0xff))
 #define MODKEY(k,m) (0x0800 | (k) | ((m) << 8))
 #define SHIFT(k) MODKEY(k, LEFT_SHIFT)
 
@@ -206,7 +331,7 @@ static const KEYCODE_TYPE layers[][NUMKEYS] = {
     KEY_Q,         KEY_W,     KEY_E,      KEY_R,         KEY_T,             KEY_Y,     KEY_U,    KEY_I,    KEY_O,       KEY_P,
     KEY_A,         KEY_S,     KEY_D,      KEY_F,         KEY_G,             KEY_H,     KEY_J,    KEY_K,    KEY_L,       KEY_SEMICOLON,
     KEY_Z,         KEY_X,     KEY_C,      KEY_V,         KEY_B,             KEY_N,     KEY_M,    KEY_COMMA,KEY_PERIOD,  KEY_SLASH,
-    0,             0,         0,          0,             0,       0, 0,     0,         0,        0,        0,      0
+    0,             0,         0,          0,             0,       0, 0,     0,         0,        0,        0,           0
     ),
 
     // Punctuation (for Software Dvorak)
@@ -215,7 +340,7 @@ static const KEYCODE_TYPE layers[][NUMKEYS] = {
     KEY_TILDE, KEY_BACKQUOTE, KEY_RIGHT_BRACE, KEY_RIGHT_CURL, 0,           0,         KEY_QUOTE,     KEY_DOUBLEQUOTE, KEY_UNDERSCORE, KEY_PLUS,
     KEY_BANG,      KEY_SPLAT, KEY_HASH,        KEY_DOLLAR,     KEY_PERCENT, KEY_CARET, KEY_AMPERSAND, KEY_STAR,        KEY_LEFT_PAREN, KEY_RIGHT_PAREN,
     0,             0,         KEY_LEFT_CURL,   KEY_LEFT_BRACE, 0,           0,         KEY_BACKSLASH, KEY_PIPE,        KEY_MINUS,      KEY_EQUAL,
-    0,             0,         0,          0,             0,       0, 0,     0,         0,        0,        0,      0
+    0,             0,         0,               0,              0,   0, 0,   0,         0,             0,               0,              0
     ),
 
     // Numbers
@@ -233,7 +358,13 @@ static const KEYCODE_TYPE layers[][NUMKEYS] = {
     0,             0,         0,          0,             0,                 0,         0,        0,        0,      0,
     0,             0,         0,          0,             0,                 0,         0,        0,        0,      0,
     0,             0,         0,          0,             0,                 0,         0,        0,        0,      0,
+#if 0
     KEY_ESC,       KEY_TAB,   LCTRL,           KEY_BACKSPACE,  KEY_ENTER, 0, 0, KEY_SPACE, KEY_LEFT,      KEY_DOWN,        KEY_UP,         KEY_RIGHT
+#else
+    TAP(ESC,LEFT_SHIFT),   KEY_TAB,             LEFT_ALT,            TAP(BACKSPACE,LEFT_GUI), TAP(ENTER,LEFT_CTRL),
+    0, 0,
+    TAP(SPACE,RIGHT_CTRL), TAP(LEFT,RIGHT_GUI), TAP(DOWN,RIGHT_ALT), KEY_UP,                  TAP(RIGHT,RIGHT_SHIFT)
+#endif
     )
 
 #if 0
@@ -262,23 +393,28 @@ static const KEYCODE_TYPE layers[][NUMKEYS] = {
 
 static uint32_t enabled_layers = (1 << 3) | (1 << 0);
 
-// decode and send keys to USB
+static uint16_t find_key(int raw) {
+    for(int layer = NUM_LAYERS-1; layer >= 0; --layer) {
+        if (enabled_layers & (1 << layer)) {
+            uint16_t keycode = layers[layer][raw];
+            if (keycode) {
+                return keycode;
+            }
+        }
+    }
+    return 0;
+}
+
+// decode raw keypresses and put in USB buffer or tapper buffer
 static void decode() {
+    update_tappers();
     for(int i = 0; i < raw_count; ++i) {
         int raw = raw_keys[i];
         boolean down = raw & 0x80;
         raw = raw & 0x7f;
-        KEYCODE_TYPE keycode = 0;
+        uint16_t keycode = find_key(raw);
+
         // search layers for keycode
-        for(int layer = NUM_LAYERS-1; layer >= 0; --layer) {
-            if (enabled_layers & (1 << layer)) {
-                keycode = layers[layer][raw];
-                if (keycode) {
-                    goto found;
-                }
-            }
-        }
-found:
         if (raw == 5 && down) { // left shift key
             enabled_layers ^= 2; // toggle punctuation
         } else if (IS_MODIFIER(keycode)) { // modifier key
@@ -289,6 +425,7 @@ found:
             }
         } else if (IS_NORMAL(keycode)) { // normal key
             if (down) {
+                resolve_tappers();
                 press_key(keycode & 0xff);
             } else {
                 release_key(keycode & 0xff);
@@ -301,31 +438,20 @@ found:
                     keyboard_modifier_keys &= ~(1 << mod);
                 }
             }
+        } else if (IS_TAPPING(keycode)) {
+            uint8_t mod = (keycode >> 8) & 0x7;
+            uint8_t key = keycode & 0xff;
+            if (down) {
+                press_tapper(key, mod);
+            } else {
+                release_tapper(key, mod);
+            }
         } else {
             // ignore anything else
         }
     }
 }
 
-// Record previous send - to avoid sending same message twice in a row
-static uint8_t prev_modifiers;
-static uint8_t prev_keys[6];
-
-// the loop function runs over and over again forever
-void loop() {
-    scan_keyboard();
-    decode();
-
-#if 0
-    if (prev_modifiers != keyboard_modifier_keys
-       || memcmp(prev_keys, keyboard_keys, 6)) {
-        prev_modifiers = keyboard_modifier_keys;
-        memcpy(prev_keys, keyboard_keys, 6);
-        send_keys();
-    }
-#else
-    send_keys();
-#endif
-
-    delay(10); // sample at 100Hz
-}
+////////////////////////////////////////////////////////////////
+// End
+////////////////////////////////////////////////////////////////
