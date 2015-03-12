@@ -416,7 +416,6 @@ static uint16_t find_key(int raw) {
 
 // decode raw keypresses and put in USB buffer or tapper buffer
 static void decode() {
-    update_tappers();
     for(int i = 0; i < raw_count; ++i) {
         int raw = raw_keys[i];
         boolean down = raw & 0x80;
@@ -466,6 +465,7 @@ static void decode() {
             // ignore anything else
         }
     }
+    update_tappers();
 }
 
 ////////////////////////////////////////////////////////////////
