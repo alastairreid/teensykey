@@ -17,7 +17,7 @@ static void release_key(uint8_t key);
 static void send_keys();
 static void clear_tappers();
 static void update_tappers();
-static void resolve_tappers();
+static void resolve_tappers(boolean tapper, boolean right);
 static void press_tapper(uint8_t key, uint8_t mod);
 static void release_tapper(uint8_t key, uint8_t mod);
 static uint16_t find_key(int raw);
@@ -183,6 +183,8 @@ static void send_keys() {
 // Tapping modifiers are either a normal key or a modifier but we can't tell
 // which until the press times out (it is a normal key) or until a normal key
 // is pressed (it is a modifier).
+// Tappers can also be resolved by using a key from the other side of the
+// keyboard.
 // While waiting to resolve, tapping modifiers are buffered
 struct tapping_state {
     uint8_t key;
@@ -213,9 +215,12 @@ static void update_tappers() {
     }
 }
 
-// if a normal key is pressed, all pending tappers are resolved
-static void resolve_tappers() {
-    for(int i = 0; i < NUM_TAPPERS; ++i) {
+// if a normal key is pressed or a tapper from the opposite side,
+// all pending tappers are resolved
+static void resolve_tappers(boolean tapper, boolean right) {
+    int lo = tapper ? (right ? 4 : 0) : 0;
+    int hi = tapper ? (right ? 8 : 4) : 8;
+    for(int i = lo; i < hi; ++i) {
         int tick = tappers[i].tick;
         if (tick) {
             tappers[i].tick   = 0;
@@ -427,7 +432,7 @@ static void decode() {
             }
         } else if (IS_NORMAL(keycode)) { // normal key
             if (down) {
-                resolve_tappers();
+                resolve_tappers(false, false);
                 press_key(keycode & 0xff);
             } else {
                 release_key(keycode & 0xff);
@@ -451,6 +456,8 @@ static void decode() {
             uint8_t mod = (keycode >> 8) & 0x7;
             uint8_t key = keycode & 0xff;
             if (down) {
+                boolean right = mod & 0x4;
+                resolve_tappers(true, right);
                 press_tapper(key, mod);
             } else {
                 release_tapper(key, mod);
