@@ -9,16 +9,16 @@
 #define TAPPER_TIMEOUT   30
 
 static inline void raw_key_press(uint8_t key);
-static boolean test_key(int rawkey);
+static boolean test_key(uint8_t rawkey);
 static void scan_keyboard();
 static void clear_keys();
-static void press_key(uint8_t key);
-static void release_key(uint8_t key);
+static void press_key(uint8_t raw, uint8_t key);
+static void release_key(uint8_t raw);
 static void send_keys();
 static void clear_tappers();
 static void update_tappers();
 static void resolve_tappers(boolean tapper, boolean right);
-static void press_tapper(uint8_t key, uint8_t mod);
+static void press_tapper(uint8_t raw, uint8_t key, uint8_t mod);
 static void release_tapper(uint8_t key, uint8_t mod);
 static uint16_t find_key(int raw);
 static void decode();
@@ -97,14 +97,14 @@ static uint8_t timeouts[NUMKEYS];
 
 // list of keys that changed state in last scan (list of raw keycodes, bit 7 set if released)
 static uint8_t raw_count = 0;
-static uint16_t raw_keys[NUMKEYS];
+static uint8_t raw_keys[NUMKEYS];
 
 static inline void raw_key_press(uint8_t key) {
     raw_keys[raw_count++] = key;
 }
 
 // Test if key is currently pressed
-static boolean test_key(int rawkey) {
+static boolean test_key(uint8_t rawkey) {
     for(int i = 0; i < raw_count; ++i) {
         if (raw_keys[i] == rawkey) {
             return true;
@@ -146,29 +146,32 @@ static void scan_keyboard() {
 
 ////////////////////////////////////////////////////////////////
 // USB Keyboard interface
+//
+// At most one keypress (and any modifiers) is reported over USB
+// at a time.
+//
+// The physical key pressed is tracked so that the key release
+// removes the translated key from the USB buffer.
 ////////////////////////////////////////////////////////////////
+
+static uint8_t raw_press;
 
 static void clear_keys() {
     keyboard_modifier_keys = 0;
     for(int i = 0; i < 6; ++i) {
         keyboard_keys[i] = 0;
     }
+    raw_press = 0xff;
 }
 
-static void press_key(uint8_t key) {
-    for(int i = 0; i < 6; ++i) {
-        if (keyboard_keys[i] == 0) {
-            keyboard_keys[i] = key;
-            return;
-        }
-    }
+static void press_key(uint8_t raw, uint8_t key) {
+    raw_press        = raw;
+    keyboard_keys[0] = key;
 }
 
-static void release_key(uint8_t key) {
-    for(int i = 0; i < 6; ++i) {
-        if (keyboard_keys[i] == key) {
-            keyboard_keys[i] = 0;
-        }
+static void release_key(uint8_t raw) {
+    if (raw == raw_press) {
+        keyboard_keys[0] = 0;
     }
 }
 
@@ -188,6 +191,7 @@ static void send_keys() {
 // While waiting to resolve, tapping modifiers are buffered
 struct tapping_state {
     uint8_t key;
+    uint8_t raw;
     uint8_t tick;
     boolean modder;  // is the key acting as a modder?
 };
@@ -209,7 +213,7 @@ static void update_tappers() {
             --tick;
             tappers[i].tick = tick;
             if (tick == 0) { // timeout expired
-                press_key(tappers[i].key);
+                press_key(tappers[i].raw, tappers[i].key);
             }
         }
     }
@@ -231,9 +235,10 @@ static void resolve_tappers(boolean tapper, boolean right) {
 }
 
 // set tapper timer if not already running
-static void press_tapper(uint8_t key, uint8_t mod) {
+static void press_tapper(uint8_t raw, uint8_t key, uint8_t mod) {
     if (tappers[mod].tick == 0) { // not already pressed
         tappers[mod].key    = key;
+        tappers[mod].raw    = raw;
         tappers[mod].tick   = TAPPER_TIMEOUT;
         tappers[mod].modder = false;
     }
@@ -246,9 +251,9 @@ static void release_tapper(uint8_t key, uint8_t mod) {
         keyboard_modifier_keys &= ~(1 << mod);
     } else { // being treated as a tapper
         tappers[mod].tick   = 0;
-        press_key(tappers[mod].key);
+        press_key(tappers[mod].raw, tappers[mod].key);
         send_keys();
-        release_key(tappers[mod].key);
+        release_key(tappers[mod].raw);
     }
 }
 
@@ -417,7 +422,7 @@ static uint16_t find_key(int raw) {
 // decode raw keypresses and put in USB buffer or tapper buffer
 static void decode() {
     for(int i = 0; i < raw_count; ++i) {
-        int raw = raw_keys[i];
+        uint8_t raw = raw_keys[i];
         boolean down = raw & 0x80;
         raw = raw & 0x7f;
         uint16_t keycode = find_key(raw);
@@ -432,9 +437,9 @@ static void decode() {
         } else if (IS_NORMAL(keycode)) { // normal key
             if (down) {
                 resolve_tappers(false, false);
-                press_key(keycode & 0xff);
+                press_key(raw, keycode & 0xff);
             } else {
-                release_key(keycode & 0xff);
+                release_key(raw);
             }
             if (IS_MODKEY(keycode)) {
                 uint8_t mod = (keycode >> 8) & 0x7;
@@ -457,7 +462,7 @@ static void decode() {
             if (down) {
                 boolean right = mod & 0x4;
                 resolve_tappers(true, right);
-                press_tapper(key, mod);
+                press_tapper(raw, key, mod);
             } else {
                 release_tapper(key, mod);
             }
