@@ -8,6 +8,21 @@
 #define DEBOUNCE_TIMEOUT 1
 #define TAPPER_TIMEOUT   30
 
+// Modifier numbers - in same order as MODIFIERKEY_* in Teensy library
+// LAYER select are extensions
+#define LEFT_CTRL   0
+#define LEFT_SHIFT  1
+#define LEFT_ALT    2
+#define LEFT_GUI    3
+#define RIGHT_CTRL  4
+#define RIGHT_SHIFT 5
+#define RIGHT_ALT   6
+#define RIGHT_GUI   7
+#define LAYER0      8
+#define LAYER1      9
+#define LAYER2      10
+#define LAYER3      11
+
 static inline void raw_key_press(uint8_t key);
 static boolean test_key(uint8_t rawkey);
 static void scan_keyboard();
@@ -20,7 +35,13 @@ static void update_tappers();
 static void resolve_tappers(boolean tapper, boolean right);
 static void press_tapper(uint8_t raw, uint8_t key, uint8_t mod);
 static void release_tapper(uint8_t key, uint8_t mod);
-static uint16_t find_key(int raw);
+static void init_stickies();
+static void resolve_stickies(boolean down);
+static void press_sticky(uint8_t mod);
+static void release_sticky(uint8_t mod);
+static uint16_t find_key(uint8_t raw);
+static void press_modifier(uint8_t mod);
+static void release_modifier(uint8_t mod);
 static void decode();
 
 ////////////////////////////////////////////////////////////////
@@ -61,6 +82,7 @@ void setup() {
 
     clear_keys();
     clear_tappers();
+    init_stickies();
 }
 
 // Record previous send - to avoid sending same message twice in a row
@@ -195,7 +217,7 @@ struct tapping_state {
     uint8_t tick;
     boolean modder;  // is the key acting as a modder?
 };
-#define NUM_TAPPERS 8
+#define NUM_TAPPERS 12
 struct tapping_state tappers[NUM_TAPPERS];
 
 static void clear_tappers() {
@@ -214,6 +236,7 @@ static void update_tappers() {
             tappers[i].tick = tick;
             if (tick == 0) { // timeout expired
                 press_key(tappers[i].raw, tappers[i].key);
+                send_keys();
             }
         }
     }
@@ -222,14 +245,15 @@ static void update_tappers() {
 // if a normal key is pressed or a tapper from the opposite side,
 // all pending tappers are resolved
 static void resolve_tappers(boolean tapper, boolean right) {
-    int lo = tapper ? (right ? 4 : 0) : 0;
-    int hi = tapper ? (right ? 8 : 4) : 8;
-    for(int i = lo; i < hi; ++i) {
-        int tick = tappers[i].tick;
-        if (tick) {
-            tappers[i].tick   = 0;
-            tappers[i].modder = true;
-            keyboard_modifier_keys |= 1 << i;
+    for(int i = 0; i < NUM_TAPPERS; ++i) {
+        boolean right_tapper = (i & 4) || (i == LAYER1);
+        if (!tapper || (right != right_tapper)) {
+            int tick = tappers[i].tick;
+            if (tick) {
+                tappers[i].tick   = 0;
+                tappers[i].modder = true;
+                press_modifier(i);
+            }
         }
     }
 }
@@ -248,12 +272,74 @@ static void release_tapper(uint8_t key, uint8_t mod) {
     if (tappers[mod].modder) { // being treated as a modifier
         tappers[mod].tick   = 0;
         tappers[mod].modder = false;
-        keyboard_modifier_keys &= ~(1 << mod);
-    } else { // being treated as a tapper
+        release_modifier(mod);
+    } else { // being treated as a key
         tappers[mod].tick   = 0;
         press_key(tappers[mod].raw, tappers[mod].key);
         send_keys();
         release_key(tappers[mod].raw);
+    }
+}
+
+////////////////////////////////////////////////////////////////
+// Sticky modifier support
+//
+// Sticky modifiers change state each time the modifier is pressed:
+// - hold + key == shifted key
+// - tap  + key == shifted key
+// - double-tap + keys + tap == shifted keys
+////////////////////////////////////////////////////////////////
+
+struct sticky_state {
+    uint8_t raw;
+    uint8_t state; // 0..5
+};
+#define NUM_STICKY 10
+struct sticky_state sticky[NUM_STICKY];
+
+static void init_stickies() {
+    for(int i = 0; i < NUM_STICKY; ++i) {
+        sticky[i].state = 0;
+    }
+}
+
+// called when a normal key is pressed
+static void resolve_stickies(boolean down) {
+    for(int mod = 0; mod < NUM_STICKY; ++mod) {
+        if (sticky[mod].state) {
+            switch (sticky[mod].state) {
+                case 1: sticky[mod].state = 5; break;
+                case 2: if (!down) sticky[mod].state = 0; break;
+                case 3: sticky[mod].state = 5; break;
+            }
+            if (sticky[mod].state) {
+                press_modifier(mod);
+            } else {
+                release_modifier(mod);
+            }
+        }
+    }
+}
+
+static void press_sticky(uint8_t mod) {
+    switch (sticky[mod].state) {
+        case 0: sticky[mod].state = 1; break;
+        case 2: sticky[mod].state = 3; break;
+        case 4: sticky[mod].state = 5; break;
+    }
+    if (sticky[mod].state) {
+        press_modifier(mod);
+    }
+}
+
+static void release_sticky(uint8_t mod) {
+    switch (sticky[mod].state) {
+        case 1: sticky[mod].state = 2; break;
+        case 3: sticky[mod].state = 4; break;
+        case 5: sticky[mod].state = 0; break;
+    }
+    if (sticky[mod].state == 0) {
+        release_modifier(mod);
     }
 }
 
@@ -269,49 +355,50 @@ static void release_tapper(uint8_t key, uint8_t mod) {
     K20, K21, K22, K23, K24,           K25, K26, K27, K28, K29, \
     K30, K31, K32, K33, K34, K35, K36, K37, K38, K39, K3A, K3B  \
 ) { \
-    K3B, K3A, K39, K38, K37, K36, K34, K33, K32, K31, K30, \
-    K29, K28, K27, K26, K25, K35, K24, K23, K22, K21, K20, \
+    K3B, K3A, K39, K38, K37, K35, K34, K33, K32, K31, K30, \
+    K29, K28, K27, K26, K25, K36, K24, K23, K22, K21, K20, \
     K19, K18, K17, K16, K15, 0,   K14, K13, K12, K11, K10, \
     K09, K08, K07, K06, K05, 0,   K04, K03, K02, K01, K00  \
 }
 
-// Modifier numbers - in same order as MODIFIERKEY_* in Teensy library
-#define LEFT_CTRL   0
-#define LEFT_SHIFT  1
-#define LEFT_ALT    2
-#define LEFT_GUI    3
-#define RIGHT_CTRL  4
-#define RIGHT_SHIFT 5
-#define RIGHT_ALT   6
-#define RIGHT_GUI   7
-
 // In the teensy firmware, keys are represented by a 16-bit number
 // We extend this scheme by using some of the unused encodings
 // - bit 15 - set if it is a modifier
-//            bits 0-7  = 1 << M (M is modifier number)
+//            bits 9:0  = 1 << M (M is modifier number)
+//            [bits 9:8 are not part of the Teensy firmware]
 // - bit 14 - set if it is a normal key
-//            bits 0-7  = which key
-// - bit 13 - set if it is a tapping modifier
-//            bits 0-7  = which key if tapped
-//            bits 8-10 = which modifier if held
+//            bits 6:0  = which key
+// - bits 13:11
+//     [Not part of the Teensy firmware]
+//     '000' - this extension is not used
+//     '001' - tapping modifier
+//            bits 6:0  = which key if tapped
+//            bits 10:7 = which modifier if held
 //                        Each modifier must be used only once in each layer
 //                        because of the way tapping modifiers are buffered
 //            [This is not part of the Teensy firmware]
-// - bit 12 - set if this key XORs the layer enable bits
-//            bits 0-7  = value to XOR into layer enable mask
-// - bit 11 - set if it has a modifier
-//            bits 0-7  = which key is held
-//            bits 8-10 = which modifier is held
+//     '010' - key + modifier
+//            bits 6:0  = which key is held
+//            bits 10:7 = which modifier is held
 //            [This is not part of the Teensy firmware]
+//     '011' - media key
+//            bits 7:0  = 1 << M (M is media key number)
+//     '100' - sticky modifier
+//            bits 3:0 = which modifier
+//
 #define IS_MODIFIER(k) ((k) & 0x8000)
 #define IS_NORMAL(k)   ((k) & 0x4000)
-#define IS_TAPPING(k)  ((k) & 0x2000)
-#define IS_LAYERXOR(k) ((k) & 0x1000)
-#define IS_MODKEY(k)   ((k) & 0x0800)
+#define IS_TAPPING(k)  (((k) & 0x3800) == 0x0800)
+#define IS_MODKEY(k)   (((k) & 0x3800) == 0x1000)
+#define IS_MEDIA(k)    (((k) & 0x3800) == 0x1800)
+#define IS_STICKY(k)   (((k) & 0x3800) == 0x2000)
 
-#define TAP(k,m)    (0x2000 | ((m) << 8) | (KEY_##k & 0xff))
-#define LAYERXOR(l) (0x1000 | (l))
-#define MODKEY(k,m) (0x0800 | (k) | ((m) << 8))
+#define TAP(k,m)    (0x0800 | ((m) << 7) | (KEY_##k & 0x7f))
+#define MODKEY(k,m) (0x1000 | (k) | ((m) << 7))
+#define MEDIA(k)    (0x1800 | (k))
+#define STICKY(m)   (0x2000 | (m))
+#define MOD(m)      MODIFIERKEY_##m
+
 #define SHIFT(k) MODKEY(k, LEFT_SHIFT)
 
 #define KEY_DOUBLEQUOTE SHIFT(KEY_QUOTE)
@@ -338,7 +425,14 @@ static void release_tapper(uint8_t key, uint8_t mod) {
 #define LCTRL MODIFIERKEY_LEFT_CTRL
 #define RCTRL MODIFIERKEY_RIGHT_CTRL
 
-static const KEYCODE_TYPE layers[][NUMKEYS] = {
+#define PREV_TRK   MEDIA(KEY_MEDIA_PREV_TRACK)
+#define NEXT_TRK   MEDIA(KEY_MEDIA_NEXT_TRACK)
+#define PLAY_PAUSE MEDIA(KEY_MEDIA_PLAY_PAUSE)
+#define MUTE       MEDIA(KEY_MEDIA_MUTE)
+#define VOL_INC    MEDIA(KEY_MEDIA_VOLUME_INC)
+#define VOL_DEC    MEDIA(KEY_MEDIA_VOLUME_DEC)
+
+static const uint16_t layers[][NUMKEYS] = {
     // Qwerty / Software Dvorak
     [0] =
     LAYER(
@@ -351,16 +445,16 @@ static const KEYCODE_TYPE layers[][NUMKEYS] = {
     // Punctuation (for Software Dvorak) on left, numbers on right
     [1] =
     LAYER(
-    KEY_TILDE, KEY_BACKQUOTE, KEY_RIGHT_BRACE, KEY_RIGHT_CURL, 0,           0,         0,        0,        0,      0,
-    KEY_BANG,      KEY_SPLAT, KEY_HASH,        KEY_DOLLAR,     KEY_PERCENT, KEY_6,     KEY_7,    KEY_8,    KEY_9,  KEY_0,
-    0,             0,         KEY_LEFT_CURL,   KEY_LEFT_BRACE, 0,           0,         0,        0,        0,      0,
-    0,             0,         0,               0,              0,   0, 0,   0,         0,        0,        0,      0
+    KEY_TILDE, KEY_BACKQUOTE, KEY_RIGHT_BRACE, KEY_RIGHT_CURL, 0,           PLAY_PAUSE,NEXT_TRK, MUTE,     VOL_DEC, VOL_INC,
+    KEY_BANG,      KEY_SPLAT, KEY_HASH,        KEY_DOLLAR,     KEY_PERCENT, KEY_6,     KEY_7,    KEY_8,    KEY_9,   KEY_0,
+    0,             0,         KEY_LEFT_CURL,   KEY_LEFT_BRACE, 0,           0,         0,        0,        0,       0,
+    0,             0,         0,               0,              0,   0, 0,   0,         0,        0,        0,       0
     ),
 
     // Numbers on left, punctuation on right
     [2] =
     LAYER(
-    0,             0,         0,          0,             0,                 0,         KEY_QUOTE,     KEY_DOUBLEQUOTE, KEY_UNDERSCORE, KEY_PLUS,
+    0,             0,         0,          0,             PREV_TRK,          0,         KEY_QUOTE,     KEY_DOUBLEQUOTE, KEY_UNDERSCORE, KEY_PLUS,
     KEY_1,         KEY_2,     KEY_3,      KEY_4,         KEY_5,             KEY_CARET, KEY_AMPERSAND, KEY_STAR,        KEY_LEFT_PAREN, KEY_RIGHT_PAREN,
     0,             0,         0,          0,             0,                 0,         KEY_BACKSLASH, KEY_PIPE,        KEY_MINUS,      KEY_EQUAL,
     0,             0,         0,          0,             0,       0, 0,     0,         0,             0,               0,              0
@@ -372,13 +466,12 @@ static const KEYCODE_TYPE layers[][NUMKEYS] = {
     0,             0,         0,          0,             0,                 0,         0,        0,        0,      0,
     0,             0,         0,          0,             0,                 0,         0,        0,        0,      0,
     0,             0,         0,          0,             0,                 0,         0,        0,        0,      0,
-#if 0
-    KEY_ESC,       KEY_TAB,   LCTRL,           KEY_BACKSPACE,  KEY_ENTER, 0, 0, KEY_SPACE, KEY_LEFT,      KEY_DOWN,        KEY_UP,         KEY_RIGHT
-#else
-    TAP(ESC,LEFT_SHIFT),   KEY_TAB,             LEFT_ALT,            TAP(BACKSPACE,LEFT_GUI), TAP(ENTER,LEFT_CTRL),
-    LAYERXOR(3), LAYERXOR(5),
-    TAP(SPACE,RIGHT_CTRL), TAP(LEFT,RIGHT_GUI), TAP(DOWN,RIGHT_ALT), KEY_UP,                  TAP(RIGHT,RIGHT_SHIFT)
-#endif
+    STICKY(LEFT_SHIFT), TAP(TAB,LEFT_ALT), TAP(LEFT,LEFT_GUI), TAP(RIGHT,LEFT_CTRL),
+    KEY_BACKSPACE,
+    TAP(ESC,LAYER2),
+    TAP(ENTER,LAYER1),
+    KEY_SPACE,
+    TAP(DOWN, RIGHT_CTRL), TAP(UP,RIGHT_GUI), MOD(RIGHT_ALT), STICKY(RIGHT_SHIFT)
     )
 
 #if 0
@@ -403,11 +496,10 @@ static const KEYCODE_TYPE layers[][NUMKEYS] = {
 };
 
 #define NUM_LAYERS (sizeof(layers) / sizeof(layers[0]))
-// #define NUM_LAYERS 5
 
 static uint32_t enabled_layers = (1 << 3) | (1 << 0);
 
-static uint16_t find_key(int raw) {
+static uint16_t find_key(uint8_t raw) {
     for(int layer = NUM_LAYERS-1; layer >= 0; --layer) {
         if (enabled_layers & (1 << layer)) {
             uint16_t keycode = layers[layer][raw];
@@ -419,8 +511,53 @@ static uint16_t find_key(int raw) {
     return 0;
 }
 
+static void enable_layer(uint8_t layer) {
+    enabled_layers |= (1<<layer);
+}
+
+static void disable_layer(uint8_t layer) {
+    enabled_layers &= ~(1<<layer);
+}
+
+static void press_modifier(uint8_t mod) {
+    if (mod < 8) {
+        keyboard_modifier_keys |= (1 << mod);
+    } else {
+        enable_layer(mod - LAYER0);
+    }
+}
+
+static void release_modifier(uint8_t mod) {
+    if (mod < 8) {
+        keyboard_modifier_keys &= ~(1 << mod);
+    } else {
+        disable_layer(mod - LAYER0);
+    }
+}
+
 // decode raw keypresses and put in USB buffer or tapper buffer
 static void decode() {
+    // first resolve any tappers - which may affect the meaning of other keys
+    // and which layers are enabled
+    for(int i = 0; i < raw_count; ++i) {
+        uint8_t raw = raw_keys[i];
+        boolean down = raw & 0x80;
+        raw = raw & 0x7f;
+        uint16_t keycode = find_key(raw);
+        if (IS_NORMAL(keycode)) { // normal key
+            if (down) {
+                resolve_tappers(false, false);
+            }
+        } else if (IS_TAPPING(keycode)) {
+            if (down) {
+                uint8_t mod = (keycode >> 7) & 0xf;
+                boolean right = (mod & 0x4) || (mod == LAYER1);
+                resolve_tappers(true, right);
+            }
+        }
+    }
+
+    // now deal with any keys
     for(int i = 0; i < raw_count; ++i) {
         uint8_t raw = raw_keys[i];
         boolean down = raw & 0x80;
@@ -435,38 +572,44 @@ static void decode() {
                 keyboard_modifier_keys &= ~(keycode & 0xff);
             }
         } else if (IS_NORMAL(keycode)) { // normal key
+            resolve_stickies(down);
             if (down) {
-                resolve_tappers(false, false);
-                press_key(raw, keycode & 0xff);
+                press_key(raw, keycode & 0x7f);
             } else {
                 release_key(raw);
             }
             if (IS_MODKEY(keycode)) {
-                uint8_t mod = (keycode >> 8) & 0x7;
+                uint8_t mod = (keycode >> 7) & 0xf;
                 if (down) {
-                    keyboard_modifier_keys |= (1 << mod);
+                    press_modifier(mod);
                 } else {
-                    keyboard_modifier_keys &= ~(1 << mod);
+                    release_modifier(mod);
                 }
             }
-        } else if (IS_LAYERXOR(keycode)) {
-            uint8_t mask = keycode & 0xff;
-            if (down) {
-                enabled_layers ^= mask;
-            } else {
-                enabled_layers ^= mask;
-            }
         } else if (IS_TAPPING(keycode)) {
-            uint8_t mod = (keycode >> 8) & 0x7;
-            uint8_t key = keycode & 0xff;
+            uint8_t mod = (keycode >> 7) & 0xf;
+            uint8_t key = keycode & 0x7f;
+            resolve_stickies(down);
             if (down) {
-                boolean right = mod & 0x4;
-                resolve_tappers(true, right);
                 press_tapper(raw, key, mod);
             } else {
                 release_tapper(key, mod);
             }
-        } else {
+        } else if (IS_STICKY(keycode)) {
+            uint8_t mod = keycode & 0xf;
+            if (down) {
+                press_sticky(mod);
+            } else {
+                release_sticky(mod);
+            }
+        } else if (IS_MEDIA(keycode)) {
+            uint8_t media = keycode & 0xff;
+            if (down) {
+                keyboard_media_keys |= media;
+            } else {
+                keyboard_media_keys &= ~media;
+            }
+       } else {
             // ignore anything else
         }
     }
