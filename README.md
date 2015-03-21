@@ -41,6 +41,11 @@ the Teensy 3.0.
   mode instead.  (I want to get a power meter first so that I can see if this
   matters.)
 
+* Instead of running in the main loop, it may be better to scan in a timer
+  interrupt so that I can run another program in the foreground.
+  Better yet would be to get the matrix to generate interrupts when a key is
+  pressed so that if nothing is happening the processor is completely asleep.
+
 * I keep thinking about adding a mini joystick and sending mouse move commands.
   I am not sure if there is any point unless I also have mouse buttons though.
 
