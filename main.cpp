@@ -609,7 +609,7 @@ static void decode() {
             } else {
                 keyboard_media_keys &= ~media;
             }
-       } else {
+        } else {
             // ignore anything else
         }
     }
