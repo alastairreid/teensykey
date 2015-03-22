@@ -466,7 +466,7 @@ static const uint16_t layers[][NUMKEYS] = {
     0,             0,         0,          0,             0,                 0,         0,        0,        0,      0,
     0,             0,         0,          0,             0,                 0,         0,        0,        0,      0,
     0,             0,         0,          0,             0,                 0,         0,        0,        0,      0,
-    STICKY(LEFT_SHIFT), TAP(TAB,LEFT_ALT), TAP(LEFT,LEFT_GUI), TAP(RIGHT,LEFT_CTRL),
+    TAP(ESC,LEFT_SHIFT), TAP(TAB,LEFT_ALT), TAP(LEFT,LEFT_GUI), TAP(RIGHT,LEFT_CTRL),
     KEY_BACKSPACE,
     TAP(ESC,LAYER2),
     TAP(ENTER,LAYER1),
