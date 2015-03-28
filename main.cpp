@@ -575,16 +575,17 @@ static void decode() {
             resolve_stickies(down);
             if (down) {
                 press_key(raw, keycode & 0x7f);
+                if (IS_MODKEY(keycode)) {
+                    uint8_t mod = (keycode >> 7) & 0xf;
+                    press_modifier(mod);
+                    press_key(raw, keycode & 0x7f);
+                    send_keys();
+                    release_modifier(mod);
+                } else {
+                    press_key(raw, keycode & 0x7f);
+                }
             } else {
                 release_key(raw);
-            }
-            if (IS_MODKEY(keycode)) {
-                uint8_t mod = (keycode >> 7) & 0xf;
-                if (down) {
-                    press_modifier(mod);
-                } else {
-                    release_modifier(mod);
-                }
             }
         } else if (IS_TAPPING(keycode)) {
             uint8_t mod = (keycode >> 7) & 0xf;
