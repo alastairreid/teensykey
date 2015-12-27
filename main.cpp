@@ -1,8 +1,8 @@
 #include "Arduino.h"
 #include "usb_keyboard.h"
 
-#define NUMCOLS 11
-#define NUMROWS 4
+#define NUMCOLS 12
+#define NUMROWS 6
 #define NUMKEYS (NUMCOLS * NUMROWS)
 
 #define DEBOUNCE_TIMEOUT 1
@@ -50,29 +50,34 @@ static void decode();
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-    // columns are on pins 0 .. 10, active low
-    pinMode(0, INPUT_PULLUP);
-    pinMode(1, INPUT_PULLUP);
-    pinMode(2, INPUT_PULLUP);
-    pinMode(3, INPUT_PULLUP);
-    pinMode(4, INPUT_PULLUP);
-    pinMode(5, INPUT_PULLUP);
-    pinMode(6, INPUT_PULLUP);
-    pinMode(7, INPUT_PULLUP);
-    pinMode(8, INPUT_PULLUP);
-    pinMode(9, INPUT_PULLUP);
-    pinMode(10,INPUT_PULLUP);
+    // columns are on pins 11, 12, 14 .. 22, active low
+    pinMode(11, INPUT_PULLUP);
+    pinMode(12, INPUT_PULLUP);
+    pinMode(14, INPUT_PULLUP);
+    pinMode(15, INPUT_PULLUP);
+    pinMode(16, INPUT_PULLUP);
+    pinMode(17, INPUT_PULLUP);
+    pinMode(18, INPUT_PULLUP);
+    pinMode(19, INPUT_PULLUP);
+    pinMode(20, INPUT_PULLUP);
+    pinMode(21, INPUT_PULLUP);
+    pinMode(22, INPUT_PULLUP);
+    pinMode(23, INPUT_PULLUP);
 
-    // rows are on pins 14 .. 17, high to start with
-    pinMode(14, OUTPUT);
-    pinMode(15, OUTPUT);
-    pinMode(16, OUTPUT);
-    pinMode(17, OUTPUT);
+    // rows are on pins 0 .. 5, high to start with
+    pinMode(0, OUTPUT);
+    pinMode(1, OUTPUT);
+    pinMode(2, OUTPUT);
+    pinMode(3, OUTPUT);
+    pinMode(4, OUTPUT);
+    pinMode(5, OUTPUT);
 
-    digitalWrite(14, HIGH);
-    digitalWrite(15, HIGH);
-    digitalWrite(16, HIGH);
-    digitalWrite(17, HIGH);
+    digitalWrite(0, HIGH);
+    digitalWrite(1, HIGH);
+    digitalWrite(2, HIGH);
+    digitalWrite(3, HIGH);
+    digitalWrite(4, HIGH);
+    digitalWrite(5, HIGH);
 
 #if 0
     // debugging aid: LED
@@ -139,15 +144,15 @@ static boolean test_key(uint8_t rawkey) {
 // Writes to raw_keys
 static void scan_keyboard() {
     raw_count = 0;
-    // Rows are on pins 14 .. 17 inclusive
     for(int row = 0; row < NUMROWS; ++row) {
-        digitalWrite(14+row, LOW);
+        int rowpin = row; // Rows are on pins 0 .. 5 inclusive
+        digitalWrite(rowpin, LOW);
         delayMicroseconds(50);
-        // Columns are on pins 0 .. 11 inclusive
         for(int col = 0; col < NUMCOLS; ++col) {
+            int colpin = col < 2 ? 11+col : 12+col; // Columns are on pins 11, 12, 14 .. 22 inclusive
             int key = row * NUMCOLS + col;
             int timeout = timeouts[key];
-            if (!digitalRead(col)) { // pressed down
+            if (!digitalRead(colpin)) { // pressed down
                 if (timeout == 0) {
                     raw_key_press(key | 0x80); // newly pressed
                 }
@@ -162,7 +167,7 @@ static void scan_keyboard() {
                 }
             }
         }
-        digitalWrite(14+row, HIGH);
+        digitalWrite(rowpin, HIGH);
     }
 }
 
@@ -350,15 +355,20 @@ static void release_sticky(uint8_t mod) {
 // This macro relates the physical layout of the keys to their position
 // in the key matrix
 #define LAYER( \
-    K00, K01, K02, K03, K04,           K05, K06, K07, K08, K09, \
-    K10, K11, K12, K13, K14,           K15, K16, K17, K18, K19, \
-    K20, K21, K22, K23, K24,           K25, K26, K27, K28, K29, \
-    K30, K31, K32, K33, K34, K35, K36, K37, K38, K39, K3A, K3B  \
+    K00, K01, K02, K03, K04, K05,                K06, K07, K08, K09, K0A, K0B, \
+    K10, K11, K12, K13, K14, K15,                K16, K17, K18, K19, K1A, K1B, \
+    K20, K21, K22, K23, K24, K25,                K26, K27, K28, K29, K2A, K2B, \
+    K30, K31, K32, K33, K34, K35,                K36, K37, K38, K39, K3A, K3B, \
+         K41, K42, K43, K44,                          K47, K48, K49, K4A,      \
+                                  K51, K52, K53,                               \
+                   K60, K61, K62, K63,      K64, K65, K66, K67                 \
 ) { \
-    K3B, K3A, K39, K38, K37, K35, K34, K33, K32, K31, K30, \
-    K29, K28, K27, K26, K25, K36, K24, K23, K22, K21, K20, \
-    K19, K18, K17, K16, K15, 0,   K14, K13, K12, K11, K10, \
-    K09, K08, K07, K06, K05, 0,   K04, K03, K02, K01, K00  \
+    K67, K66, K65, K64, K53, K52, K63, K62, K61, K60, K51, 0, \
+    0,   K4A, K49, K48, K47, 0,   K43, K42, K41, 0,   K44, 0,   \
+    K3B, K3A, K39, K38, K37, K36, K33, K32, K31, K30, K34, K35, \
+    K2B, K2A, K29, K28, K27, K26, K23, K22, K21, K20, K24, K25, \
+    K1B, K1A, K19, K18, K17, K16, K13, K12, K11, K10, K14, K15, \
+    K0B, K0A, K09, K08, K07, K06, K03, K02, K01, K00, K04, K05, \
 }
 
 // In the teensy firmware, keys are represented by a 16-bit number
@@ -424,6 +434,10 @@ static void release_sticky(uint8_t mod) {
 #define RSHIFT MODIFIERKEY_RIGHT_SHIFT
 #define LCTRL MODIFIERKEY_LEFT_CTRL
 #define RCTRL MODIFIERKEY_RIGHT_CTRL
+#define LALT MODIFIERKEY_LEFT_ALT
+#define RALT MODIFIERKEY_RIGHT_ALT
+#define LGUI MODIFIERKEY_LEFT_GUI
+#define RGUI MODIFIERKEY_RIGHT_GUI
 
 #define PREV_TRK   MEDIA(KEY_MEDIA_PREV_TRACK)
 #define NEXT_TRK   MEDIA(KEY_MEDIA_NEXT_TRACK)
@@ -436,12 +450,15 @@ static const uint16_t layers[][NUMKEYS] = {
     // Qwerty / Software Dvorak
     [0] =
     LAYER(
-    KEY_Q,         KEY_W,     KEY_E,      KEY_R,         KEY_T,             KEY_Y,     KEY_U,    KEY_I,    KEY_O,       KEY_P,
-    KEY_A,         KEY_S,     KEY_D,      KEY_F,         KEY_G,             KEY_H,     KEY_J,    KEY_K,    KEY_L,       KEY_SEMICOLON,
-    KEY_Z,         KEY_X,     KEY_C,      KEY_V,         KEY_B,             KEY_N,     KEY_M,    KEY_COMMA,KEY_PERIOD,  KEY_SLASH,
-    0,             0,         0,          0,             0,       0, 0,     0,         0,        0,        0,           0
+    KEY_TILDE,  KEY_1,     KEY_2,          KEY_3,         KEY_4,       KEY_5,         KEY_6,     KEY_7,      KEY_8,     KEY_9,          KEY_0,          KEY_EQUAL,
+    KEY_TAB,    KEY_Q,     KEY_W,          KEY_E,         KEY_R,       KEY_T,         KEY_Y,     KEY_U,      KEY_I,     KEY_O,          KEY_P,          KEY_SLASH,
+    KEY_ESC,    KEY_A,     KEY_S,          KEY_D,         KEY_F,       KEY_G,         KEY_H,     KEY_J,      KEY_K,     KEY_L,          KEY_SEMICOLON,  KEY_MINUS,
+    LSHIFT,     KEY_Z,     KEY_X,          KEY_C,         KEY_V,       KEY_B,         KEY_N,     KEY_M,      KEY_COMMA, KEY_PERIOD,     KEY_SLASH,      RSHIFT,
+                KEY_TILDE, KEY_BACKSLASH,  KEY_LEFT,      KEY_RIGHT,                             KEY_DOWN,   KEY_UP,    KEY_LEFT_BRACE, KEY_RIGHT_BRACE,
+                                                                       LCTRL,  LALT,  RCTRL,
+                             KEY_A,        KEY_BACKSPACE, KEY_SPACE,   LGUI,          RGUI,      KEY_ENTER,  KEY_SPACE, KEY_M
     ),
-
+#if 0
     // Punctuation (for Software Dvorak) on left, numbers on right
     [1] =
     LAYER(
@@ -492,6 +509,7 @@ static const uint16_t layers[][NUMKEYS] = {
     0,             0,         KEY_QUERY,  KEY_SLASH,     0,                 0,         KEY_BACKSLASH, KEY_PIPE, KEY_LEFT_BRACE,  KEY_RIGHT_BRACE,
     KEY_ESC,       KEY_TAB,   LCTRL,      KEY_BACKSPACE, KEY_ENTER, 0, 0, KEY_SPACE, KEY_LEFT, KEY_DOWN, KEY_UP, KEY_RIGHT
     ),
+#endif
 #endif
 };
 
