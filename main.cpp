@@ -450,13 +450,13 @@ static const uint16_t layers[][NUMKEYS] = {
     // Qwerty / Software Dvorak
     [0] =
     LAYER(
-    KEY_TILDE,  KEY_1,     KEY_2,          KEY_3,         KEY_4,       KEY_5,         KEY_6,     KEY_7,      KEY_8,     KEY_9,          KEY_0,          KEY_EQUAL,
-    KEY_TAB,    KEY_Q,     KEY_W,          KEY_E,         KEY_R,       KEY_T,         KEY_Y,     KEY_U,      KEY_I,     KEY_O,          KEY_P,          KEY_SLASH,
-    KEY_ESC,    KEY_A,     KEY_S,          KEY_D,         KEY_F,       KEY_G,         KEY_H,     KEY_J,      KEY_K,     KEY_L,          KEY_SEMICOLON,  KEY_MINUS,
+    KEY_TILDE,  KEY_1,     KEY_2,          KEY_3,         KEY_4,       KEY_5,         KEY_6,     KEY_7,      KEY_8,     KEY_9,          KEY_0,          KEY_RIGHT_BRACE,
+    KEY_TAB,    KEY_Q,     KEY_W,          KEY_E,         KEY_R,       KEY_T,         KEY_Y,     KEY_U,      KEY_I,     KEY_O,          KEY_P,          KEY_LEFT_BRACE,
+    KEY_ESC,    KEY_A,     KEY_S,          KEY_D,         KEY_F,       KEY_G,         KEY_H,     KEY_J,      KEY_K,     KEY_L,          KEY_SEMICOLON,  KEY_QUOTE,
     LSHIFT,     KEY_Z,     KEY_X,          KEY_C,         KEY_V,       KEY_B,         KEY_N,     KEY_M,      KEY_COMMA, KEY_PERIOD,     KEY_SLASH,      RSHIFT,
-                KEY_TILDE, KEY_BACKSLASH,  KEY_LEFT,      KEY_RIGHT,                             KEY_DOWN,   KEY_UP,    KEY_LEFT_BRACE, KEY_RIGHT_BRACE,
+                KEY_TILDE, KEY_BACKSLASH,  KEY_LEFT,      KEY_RIGHT,                             KEY_DOWN,   KEY_UP,    KEY_MINUS,      KEY_EQUAL,
                                                                        LCTRL,  LALT,  RCTRL,
-                             KEY_A,        KEY_BACKSPACE, KEY_SPACE,   LGUI,          RGUI,      KEY_ENTER,  KEY_SPACE, KEY_M
+                             KEY_A,        KEY_BACKSPACE, KEY_SPACE,   LGUI,          RGUI,      KEY_ENTER,  KEY_SPACE, KEY_B
     ),
 #if 0
     // Punctuation (for Software Dvorak) on left, numbers on right
