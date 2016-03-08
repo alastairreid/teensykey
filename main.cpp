@@ -5,8 +5,13 @@
 #define NUMROWS 6
 #define NUMKEYS (NUMCOLS * NUMROWS)
 
+#define HAVE_TAPPERS  0
+#define HAVE_STICKIES 0
+
 #define DEBOUNCE_TIMEOUT 1
+#if HAVE_TAPPERS
 #define TAPPER_TIMEOUT   30
+#endif
 
 // Modifier numbers - in same order as MODIFIERKEY_* in Teensy library
 // LAYER select are extensions
@@ -24,21 +29,27 @@
 #define LAYER3      11
 
 static inline void raw_key_press(uint8_t key);
+#if 0
 static boolean test_key(uint8_t rawkey);
+#endif
 static void scan_keyboard();
 static void clear_keys();
 static void press_key(uint8_t raw, uint8_t key);
 static void release_key(uint8_t raw);
 static void send_keys();
+#if HAVE_TAPPERS
 static void clear_tappers();
 static void update_tappers();
 static void resolve_tappers(boolean tapper, boolean right);
 static void press_tapper(uint8_t raw, uint8_t key, uint8_t mod);
 static void release_tapper(uint8_t key, uint8_t mod);
+#endif
+#if HAVE_STICKIES
 static void init_stickies();
 static void resolve_stickies(boolean down);
 static void press_sticky(uint8_t mod);
 static void release_sticky(uint8_t mod);
+#endif
 static uint16_t find_key(uint8_t raw);
 static void press_modifier(uint8_t mod);
 static void release_modifier(uint8_t mod);
@@ -86,13 +97,19 @@ void setup() {
 #endif
 
     clear_keys();
+#if HAVE_TAPPERS
     clear_tappers();
+#endif
+#if HAVE_STICKIES
     init_stickies();
+#endif
 }
 
+#if 0
 // Record previous send - to avoid sending same message twice in a row
 static uint8_t prev_modifiers;
 static uint8_t prev_keys[6];
+#endif
 
 // the loop function runs over and over again forever
 void loop() {
@@ -130,6 +147,7 @@ static inline void raw_key_press(uint8_t key) {
     raw_keys[raw_count++] = key;
 }
 
+#if 0
 // Test if key is currently pressed
 static boolean test_key(uint8_t rawkey) {
     for(int i = 0; i < raw_count; ++i) {
@@ -139,6 +157,7 @@ static boolean test_key(uint8_t rawkey) {
     }
     return timeouts[rawkey] != 0;
 }
+#endif
 
 // Scan all keys for pressed keys
 // Writes to raw_keys
@@ -206,6 +225,7 @@ static void send_keys() {
     usb_keyboard_send();
 }
 
+#if HAVE_TAPPERS
 ////////////////////////////////////////////////////////////////
 // Tapping modifier support
 ////////////////////////////////////////////////////////////////
@@ -285,7 +305,9 @@ static void release_tapper(uint8_t key, uint8_t mod) {
         release_key(tappers[mod].raw);
     }
 }
+#endif
 
+#if HAVE_STICKIES
 ////////////////////////////////////////////////////////////////
 // Sticky modifier support
 //
@@ -347,6 +369,7 @@ static void release_sticky(uint8_t mod) {
         release_modifier(mod);
     }
 }
+#endif // HAVE_STICKIES
 
 ////////////////////////////////////////////////////////////////
 // Keyboard mapping support
@@ -398,15 +421,23 @@ static void release_sticky(uint8_t mod) {
 //
 #define IS_MODIFIER(k) ((k) & 0x8000)
 #define IS_NORMAL(k)   ((k) & 0x4000)
+#if HAVE_TAPPERS
 #define IS_TAPPING(k)  (((k) & 0x3800) == 0x0800)
+#endif
 #define IS_MODKEY(k)   (((k) & 0x3800) == 0x1000)
 #define IS_MEDIA(k)    (((k) & 0x3800) == 0x1800)
+#if HAVE_STICKIES
 #define IS_STICKY(k)   (((k) & 0x3800) == 0x2000)
+#endif
 
+#if HAVE_TAPPERS
 #define TAP(k,m)    (0x0800 | ((m) << 7) | (KEY_##k & 0x7f))
+#endif
 #define MODKEY(k,m) (0x1000 | (k) | ((m) << 7))
 #define MEDIA(k)    (0x1800 | (k))
+#if HAVE_STICKIES
 #define STICKY(m)   (0x2000 | (m))
+#endif
 #define MOD(m)      MODIFIERKEY_##m
 
 #define SHIFT(k) MODKEY(k, LEFT_SHIFT)
@@ -555,6 +586,7 @@ static void release_modifier(uint8_t mod) {
 
 // decode raw keypresses and put in USB buffer or tapper buffer
 static void decode() {
+#if HAVE_TAPPERS
     // first resolve any tappers - which may affect the meaning of other keys
     // and which layers are enabled
     for(int i = 0; i < raw_count; ++i) {
@@ -574,6 +606,7 @@ static void decode() {
             }
         }
     }
+#endif
 
     // now deal with any keys
     for(int i = 0; i < raw_count; ++i) {
@@ -590,7 +623,9 @@ static void decode() {
                 keyboard_modifier_keys &= ~(keycode & 0xff);
             }
         } else if (IS_NORMAL(keycode)) { // normal key
+#if HAVE_STICKIES
             resolve_stickies(down);
+#endif
             if (down) {
                 press_key(raw, keycode & 0x7f);
                 if (IS_MODKEY(keycode)) {
@@ -605,6 +640,7 @@ static void decode() {
             } else {
                 release_key(raw);
             }
+#if HAVE_TAPPERS
         } else if (IS_TAPPING(keycode)) {
             uint8_t mod = (keycode >> 7) & 0xf;
             uint8_t key = keycode & 0x7f;
@@ -614,6 +650,8 @@ static void decode() {
             } else {
                 release_tapper(key, mod);
             }
+#endif
+#if HAVE_STICKIES
         } else if (IS_STICKY(keycode)) {
             uint8_t mod = keycode & 0xf;
             if (down) {
@@ -621,6 +659,7 @@ static void decode() {
             } else {
                 release_sticky(mod);
             }
+#endif
         } else if (IS_MEDIA(keycode)) {
             uint8_t media = keycode & 0xff;
             if (down) {
@@ -632,7 +671,9 @@ static void decode() {
             // ignore anything else
         }
     }
+#if HAVE_TAPPERS
     update_tappers();
+#endif
 }
 
 ////////////////////////////////////////////////////////////////
