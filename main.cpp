@@ -430,6 +430,7 @@ static void release_sticky(uint8_t mod) {
 #define IS_STICKY(k)   (((k) & 0x3800) == 0x2000)
 #endif
 
+#define MODIFIER(m) (0x8000 | (1 << (m)))
 #if HAVE_TAPPERS
 #define TAP(k,m)    (0x0800 | ((m) << 7) | (KEY_##k & 0x7f))
 #endif
@@ -439,6 +440,11 @@ static void release_sticky(uint8_t mod) {
 #define STICKY(m)   (0x2000 | (m))
 #endif
 #define MOD(m)      MODIFIERKEY_##m
+
+#define KEY_LAYER0  MODIFIER(LAYER0)
+#define KEY_LAYER1  MODIFIER(LAYER1)
+#define KEY_LAYER2  MODIFIER(LAYER2)
+#define KEY_LAYER3  MODIFIER(LAYER3)
 
 #define SHIFT(k) MODKEY(k, LEFT_SHIFT)
 
@@ -487,7 +493,18 @@ static const uint16_t layers[][NUMKEYS] = {
     LSHIFT,     KEY_Z,     KEY_X,          KEY_C,         KEY_V,       KEY_B,         KEY_N,     KEY_M,      KEY_COMMA, KEY_PERIOD,     KEY_SLASH,      RSHIFT,
                 KEY_TILDE, KEY_BACKSLASH,  KEY_LEFT,      KEY_RIGHT,                             KEY_DOWN,   KEY_UP,    KEY_MINUS,      KEY_EQUAL,
                                                                        LCTRL,  LALT,  RCTRL,
-                             KEY_A,        KEY_BACKSPACE, KEY_SPACE,   LGUI,          RGUI,      KEY_ENTER,  KEY_SPACE, KEY_B
+                           KEY_LAYER1,     KEY_BACKSPACE, KEY_SPACE,   LGUI,          RGUI,      KEY_ENTER,  KEY_SPACE, KEY_LAYER1
+    ),
+    // Function key layer
+    [1] =
+    LAYER(
+    KEY_TILDE,  KEY_F1,    KEY_F2,         KEY_F3,        KEY_F4,      KEY_F5,        KEY_F6,    KEY_F7,     KEY_F8,    KEY_F9,         KEY_F10,        KEY_F11,
+    KEY_TAB,    KEY_Q,     KEY_W,          KEY_E,         KEY_R,       KEY_T,         PREV_TRK,  PLAY_PAUSE, NEXT_TRK,  MUTE,           VOL_DEC,        VOL_INC,
+    KEY_ESC,    KEY_A,     KEY_S,          KEY_D,         KEY_F,       KEY_G,         KEY_H,     KEY_J,      KEY_K,     KEY_L,          KEY_SEMICOLON,  KEY_QUOTE,
+    LSHIFT,     KEY_Z,     KEY_X,          KEY_C,         KEY_V,       KEY_B,         KEY_N,     KEY_M,      KEY_COMMA, KEY_PERIOD,     KEY_SLASH,      RSHIFT,
+                KEY_TILDE, KEY_BACKSLASH,  KEY_LEFT,      KEY_RIGHT,                             KEY_DOWN,   KEY_UP,    KEY_MINUS,      KEY_EQUAL,
+                                                                       LCTRL,  LALT,  RCTRL,
+                           KEY_LAYER1,     KEY_BACKSPACE, KEY_SPACE,   LGUI,          RGUI,      KEY_ENTER,  KEY_SPACE, KEY_LAYER1
     ),
 #if 0
     // Punctuation (for Software Dvorak) on left, numbers on right
@@ -546,7 +563,7 @@ static const uint16_t layers[][NUMKEYS] = {
 
 #define NUM_LAYERS (sizeof(layers) / sizeof(layers[0]))
 
-static uint32_t enabled_layers = (1 << 3) | (1 << 0);
+static uint32_t enabled_layers = (0 << 3) | (1 << 0);
 
 static uint16_t find_key(uint8_t raw) {
     for(int layer = NUM_LAYERS-1; layer >= 0; --layer) {
@@ -569,7 +586,7 @@ static void disable_layer(uint8_t layer) {
 }
 
 static void press_modifier(uint8_t mod) {
-    if (mod < 8) {
+    if (mod < LAYER0) {
         keyboard_modifier_keys |= (1 << mod);
     } else {
         enable_layer(mod - LAYER0);
@@ -577,7 +594,7 @@ static void press_modifier(uint8_t mod) {
 }
 
 static void release_modifier(uint8_t mod) {
-    if (mod < 8) {
+    if (mod < LAYER0) {
         keyboard_modifier_keys &= ~(1 << mod);
     } else {
         disable_layer(mod - LAYER0);
@@ -619,8 +636,10 @@ static void decode() {
         if (IS_MODIFIER(keycode)) { // modifier key
             if (down) {
                 keyboard_modifier_keys |= (keycode & 0xff);
+                enabled_layers         |= ((keycode >> LAYER0) & 0xf);
             } else {
                 keyboard_modifier_keys &= ~(keycode & 0xff);
+                enabled_layers         &= ~((keycode >> LAYER0) & 0xf);
             }
         } else if (IS_NORMAL(keycode)) { // normal key
 #if HAVE_STICKIES
