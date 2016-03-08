@@ -498,67 +498,14 @@ static const uint16_t layers[][NUMKEYS] = {
     // Function key layer
     [1] =
     LAYER(
-    KEY_TILDE,  KEY_F1,    KEY_F2,         KEY_F3,        KEY_F4,      KEY_F5,        KEY_F6,    KEY_F7,     KEY_F8,    KEY_F9,         KEY_F10,        KEY_F11,
-    KEY_TAB,    KEY_Q,     KEY_W,          KEY_E,         KEY_R,       KEY_T,         PREV_TRK,  PLAY_PAUSE, NEXT_TRK,  MUTE,           VOL_DEC,        VOL_INC,
-    KEY_ESC,    KEY_A,     KEY_S,          KEY_D,         KEY_F,       KEY_G,         KEY_H,     KEY_J,      KEY_K,     KEY_L,          KEY_SEMICOLON,  KEY_QUOTE,
-    LSHIFT,     KEY_Z,     KEY_X,          KEY_C,         KEY_V,       KEY_B,         KEY_N,     KEY_M,      KEY_COMMA, KEY_PERIOD,     KEY_SLASH,      RSHIFT,
-                KEY_TILDE, KEY_BACKSLASH,  KEY_LEFT,      KEY_RIGHT,                             KEY_DOWN,   KEY_UP,    KEY_MINUS,      KEY_EQUAL,
+    0,          KEY_F1,    KEY_F2,         KEY_F3,        KEY_F4,      KEY_F5,        KEY_F6,    KEY_F7,     KEY_F8,    KEY_F9,         KEY_F10,        KEY_F11,
+    0,          0,         0,              0,             0,           0,             PREV_TRK,  PLAY_PAUSE, NEXT_TRK,  MUTE,           VOL_DEC,        VOL_INC,
+    0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
+    LSHIFT,     0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              RSHIFT,
+                0,         0,              0,             0,                                     0,          0,         0,              0,
                                                                        LCTRL,  LALT,  RCTRL,
-                           KEY_LAYER1,     KEY_BACKSPACE, KEY_SPACE,   LGUI,          RGUI,      KEY_ENTER,  KEY_SPACE, KEY_LAYER1
+                           KEY_LAYER1,     0,             0,           LGUI,          RGUI,      0,          0,         KEY_LAYER1
     ),
-#if 0
-    // Punctuation (for Software Dvorak) on left, numbers on right
-    [1] =
-    LAYER(
-    KEY_TILDE, KEY_BACKQUOTE, KEY_RIGHT_BRACE, KEY_RIGHT_CURL, 0,           PLAY_PAUSE,NEXT_TRK, MUTE,     VOL_DEC, VOL_INC,
-    KEY_BANG,      KEY_SPLAT, KEY_HASH,        KEY_DOLLAR,     KEY_PERCENT, KEY_6,     KEY_7,    KEY_8,    KEY_9,   KEY_0,
-    0,             0,         KEY_LEFT_CURL,   KEY_LEFT_BRACE, 0,           0,         0,        0,        0,       0,
-    0,             0,         0,               0,              0,   0, 0,   0,         0,        0,        0,       0
-    ),
-
-    // Numbers on left, punctuation on right
-    [2] =
-    LAYER(
-    0,             0,         0,          0,             PREV_TRK,          0,         KEY_QUOTE,     KEY_DOUBLEQUOTE, KEY_UNDERSCORE, KEY_PLUS,
-    KEY_1,         KEY_2,     KEY_3,      KEY_4,         KEY_5,             KEY_CARET, KEY_AMPERSAND, KEY_STAR,        KEY_LEFT_PAREN, KEY_RIGHT_PAREN,
-    0,             0,         0,          0,             0,                 0,         KEY_BACKSLASH, KEY_PIPE,        KEY_MINUS,      KEY_EQUAL,
-    0,             0,         0,          0,             0,       0, 0,     0,         0,             0,               0,              0
-    ),
-
-    // Modifiers
-    [3] =
-    LAYER(
-    0,             0,         0,          0,             0,                 0,         0,        0,        0,      0,
-    0,             0,         0,          0,             0,                 0,         0,        0,        0,      0,
-    0,             0,         0,          0,             0,                 0,         0,        0,        0,      0,
-    TAP(ESC,LEFT_SHIFT), TAP(TAB,LEFT_ALT), TAP(LEFT,LEFT_GUI), TAP(RIGHT,LEFT_CTRL),
-    KEY_BACKSPACE,
-    TAP(ESC,LAYER2),
-    TAP(ENTER,LAYER1),
-    KEY_SPACE,
-    TAP(DOWN, RIGHT_CTRL), TAP(UP,RIGHT_GUI), MOD(RIGHT_ALT), STICKY(RIGHT_SHIFT)
-    )
-
-#if 0
-    // Hardware Dvorak
-    [3] =
-    LAYER(
-    KEY_QUOTE,     KEY_COMMA, KEY_PERIOD, KEY_P,         KEY_Y,                     KEY_F,     KEY_G,    KEY_C,    KEY_R,  KEY_L,
-    KEY_A,         KEY_O,     KEY_E,      KEY_U,         KEY_I,                     KEY_D,     KEY_H,    KEY_T,    KEY_N,  KEY_S,
-    KEY_SEMICOLON, KEY_Q,     KEY_J,      KEY_K,         KEY_X,                     KEY_B,     KEY_M,    KEY_W,    KEY_V,  KEY_Z,
-    KEY_ESC,       KEY_TAB,   LCTRL,      KEY_BACKSPACE, KEY_ENTER, LSHIFT, RSHIFT, KEY_SPACE, KEY_LEFT, KEY_DOWN, KEY_UP, KEY_RIGHT
-    ),
-
-    // Punctuation (for Qwerty and Hardware Dvorak)
-    [4] =
-    LAYER(
-    KEY_TILDE, KEY_BACKQUOTE, KEY_EQUAL,  KEY_PLUS,      0,                 0,         KEY_MINUS,     KEY_UNDERSCORE,KEY_LEFT_CURL,  KEY_RIGHT_CURL,
-    KEY_BANG,      KEY_SPLAT, KEY_HASH,   KEY_DOLLAR,    KEY_PERCENT,       KEY_CARET, KEY_AMPERSAND, KEY_STAR, KEY_LEFT_PAREN,  KEY_RIGHT_PAREN,
-    0,             0,         KEY_QUERY,  KEY_SLASH,     0,                 0,         KEY_BACKSLASH, KEY_PIPE, KEY_LEFT_BRACE,  KEY_RIGHT_BRACE,
-    KEY_ESC,       KEY_TAB,   LCTRL,      KEY_BACKSPACE, KEY_ENTER, 0, 0, KEY_SPACE, KEY_LEFT, KEY_DOWN, KEY_UP, KEY_RIGHT
-    ),
-#endif
-#endif
 };
 
 #define NUM_LAYERS (sizeof(layers) / sizeof(layers[0]))
@@ -603,14 +550,14 @@ static void release_modifier(uint8_t mod) {
 
 // decode raw keypresses and put in USB buffer or tapper buffer
 static void decode() {
-#if HAVE_TAPPERS
-    // first resolve any tappers - which may affect the meaning of other keys
-    // and which layers are enabled
+    // first resolve any tappers and modifiers - which may affect
+    // the meaning of other keys and which layers are enabled
     for(int i = 0; i < raw_count; ++i) {
         uint8_t raw = raw_keys[i];
         boolean down = raw & 0x80;
         raw = raw & 0x7f;
         uint16_t keycode = find_key(raw);
+#if HAVE_TAPPERS
         if (IS_NORMAL(keycode)) { // normal key
             if (down) {
                 resolve_tappers(false, false);
@@ -622,8 +569,15 @@ static void decode() {
                 resolve_tappers(true, right);
             }
         }
-    }
 #endif
+        if (IS_MODIFIER(keycode)) { // modifier key
+            if (down) {
+                enabled_layers         |= ((keycode >> LAYER0) & 0xf);
+            } else {
+                enabled_layers         &= ~((keycode >> LAYER0) & 0xf);
+            }
+        }
+    }
 
     // now deal with any keys
     for(int i = 0; i < raw_count; ++i) {
@@ -636,10 +590,8 @@ static void decode() {
         if (IS_MODIFIER(keycode)) { // modifier key
             if (down) {
                 keyboard_modifier_keys |= (keycode & 0xff);
-                enabled_layers         |= ((keycode >> LAYER0) & 0xf);
             } else {
                 keyboard_modifier_keys &= ~(keycode & 0xff);
-                enabled_layers         &= ~((keycode >> LAYER0) & 0xf);
             }
         } else if (IS_NORMAL(keycode)) { // normal key
 #if HAVE_STICKIES
