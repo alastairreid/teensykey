@@ -482,6 +482,8 @@ static void release_sticky(uint8_t mod) {
 #define MUTE       MEDIA(KEY_MEDIA_MUTE)
 #define VOL_INC    MEDIA(KEY_MEDIA_VOLUME_INC)
 #define VOL_DEC    MEDIA(KEY_MEDIA_VOLUME_DEC)
+#define BRIGHT_DEC KEY_F14
+#define BRIGHT_INC KEY_F15
 
 static const uint16_t layers[][NUMKEYS] = {
     // Qwerty / Software Dvorak
@@ -499,12 +501,12 @@ static const uint16_t layers[][NUMKEYS] = {
     [1] =
     LAYER(
     0,          KEY_F1,    KEY_F2,         KEY_F3,        KEY_F4,      KEY_F5,        KEY_F6,    KEY_F7,     KEY_F8,    KEY_F9,         KEY_F10,        KEY_F11,
-    0,          0,         0,              0,             0,           0,             PREV_TRK,  PLAY_PAUSE, NEXT_TRK,  MUTE,           VOL_DEC,        VOL_INC,
-    0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
-    LSHIFT,     0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              RSHIFT,
-                0,         0,              0,             0,                                     0,          0,         0,              0,
+    0,          VOL_INC,   NEXT_TRK,       BRIGHT_INC,    0,           0,             0,         KEY_7,      KEY_8,     KEY_9,          KEY_QUOTE,      KEY_F12,
+    0,          MUTE,      PLAY_PAUSE,     0,             0,           0,             0,         KEY_4,      KEY_5,     KEY_6,          KEY_RIGHT_CURL, 0,
+    LSHIFT,     VOL_DEC,   PREV_TRK,       BRIGHT_DEC,    0,           0,             0,         KEY_1,      KEY_2,     KEY_3,          KEY_ENTER,      RSHIFT,
+                0,         0,              0,             0,                                     0,          0,         KEY_E,          KEY_ENTER,
                                                                        LCTRL,  LALT,  RCTRL,
-                           KEY_LAYER1,     0,             0,           LGUI,          RGUI,      0,          0,         KEY_LAYER1
+                           KEY_LAYER1,     0,             0,           LGUI,          RGUI,      0,          KEY_0,     KEY_LAYER1
     ),
 };
 
