@@ -482,31 +482,41 @@ static void release_sticky(uint8_t mod) {
 #define MUTE       MEDIA(KEY_MEDIA_MUTE)
 #define VOL_INC    MEDIA(KEY_MEDIA_VOLUME_INC)
 #define VOL_DEC    MEDIA(KEY_MEDIA_VOLUME_DEC)
-#define BRIGHT_DEC KEY_F14
-#define BRIGHT_INC KEY_F15
+#define ARROW_LR    KEY_F11
+#define ARROW_L     KEY_F12
+#define ARROW_R     KEY_F13
+#define BRIGHT_DEC  KEY_F14
+#define BRIGHT_INC  KEY_F15
+#define MATH_AND    KEY_F16
+#define MATH_OR     KEY_F17
+#define MATH_NOT    KEY_F18
+#define MATH_FORALL KEY_F19
+#define MATH_EXISTS KEY_MENU
+#define MATH_TSTILE KEY_INSERT
+#define GRK_LAMBDA  KEYPAD_0
 
 static const uint16_t layers[][NUMKEYS] = {
     // Qwerty / Software Dvorak
     [0] =
     LAYER(
-    KEY_RIGHT_BRACE, KEY_1,KEY_2,          KEY_3,         KEY_4,       KEY_5,         KEY_6,     KEY_7,      KEY_8,     KEY_9,          KEY_0,          KEY_RIGHT_BRACE,
+    KEY_RIGHT_BRACE, KEY_1,KEY_2,          KEY_3,         KEY_4,       KEY_5,         KEY_6,     KEY_7,      KEY_8,     KEY_9,          KEY_0,          KEY_QUOTE,
     KEY_TAB,    KEY_Q,     KEY_W,          KEY_E,         KEY_R,       KEY_T,         KEY_Y,     KEY_U,      KEY_I,     KEY_O,          KEY_P,          KEY_LEFT_BRACE,
-    KEY_ESC,    KEY_A,     KEY_S,          KEY_D,         KEY_F,       KEY_G,         KEY_H,     KEY_J,      KEY_K,     KEY_L,          KEY_SEMICOLON,  KEY_QUOTE,
+    KEY_ESC,    KEY_A,     KEY_S,          KEY_D,         KEY_F,       KEY_G,         KEY_H,     KEY_J,      KEY_K,     KEY_L,          KEY_SEMICOLON,  KEY_BACKSLASH,
     LSHIFT,     KEY_Z,     KEY_X,          KEY_C,         KEY_V,       KEY_B,         KEY_N,     KEY_M,      KEY_COMMA, KEY_PERIOD,     KEY_SLASH,      RSHIFT,
-                KEY_TILDE, KEY_BACKSLASH,  KEY_LEFT,      KEY_RIGHT,                             KEY_DOWN,   KEY_UP,    KEY_MINUS,      KEY_EQUAL,
+                KEY_TILDE, 0,              KEY_LEFT,      KEY_RIGHT,                             KEY_DOWN,   KEY_UP,    KEY_MINUS,      KEY_EQUAL,
                                                                        LCTRL,  LALT,  RCTRL,
-                           KEY_LAYER1,     KEY_BACKSPACE, KEY_SPACE,   LGUI,          RGUI,      KEY_ENTER,  KEY_SPACE, KEY_LAYER1
+                           KEY_LAYER1,     KEY_BACKSPACE, KEY_ESC,     LGUI,          RGUI,      KEY_ENTER,  KEY_SPACE, KEY_LAYER1
     ),
     // Function key layer
     [1] =
     LAYER(
-    0,          KEY_F1,    KEY_F2,         KEY_F3,        KEY_F4,      KEY_F5,        KEY_F6,    KEY_F7,     KEY_F8,    KEY_F9,         KEY_F10,        KEY_F11,
-    0,          VOL_INC,   NEXT_TRK,       BRIGHT_INC,    0,           0,             0,         KEY_7,      KEY_8,     KEY_9,          KEY_QUOTE,      KEY_F12,
-    0,          MUTE,      PLAY_PAUSE,     0,             0,           0,             0,         KEY_4,      KEY_5,     KEY_6,          KEY_RIGHT_CURL, 0,
-    LSHIFT,     VOL_DEC,   PREV_TRK,       BRIGHT_DEC,    0,           0,             0,         KEY_1,      KEY_2,     KEY_3,          KEY_ENTER,      RSHIFT,
-                0,         0,              0,             0,                                     0,          0,         KEY_E,          KEY_ENTER,
-                                                                       LCTRL,  LALT,  RCTRL,
-                           KEY_LAYER1,     0,             0,           LGUI,          RGUI,      0,          KEY_0,     KEY_LAYER1
+    VOL_INC,    KEY_F1,    KEY_F2,         KEY_F3,        KEY_F4,        KEY_F5,        KEY_F6,         KEY_F7,     KEY_F8,    KEY_F9,     KEY_F10,        NEXT_TRK,
+    MUTE,       ARROW_LR,  ARROW_L,        ARROW_R,       MATH_TSTILE,   GRK_LAMBDA,    0,              KEY_7,      KEY_8,     KEY_9,      KEY_QUOTE,      PLAY_PAUSE,
+    VOL_DEC,    MATH_AND,  MATH_OR,        MATH_EXISTS,   MATH_FORALL,   MATH_NOT,      0,              KEY_4,      KEY_5,     KEY_6,      KEY_RIGHT_CURL, PREV_TRK,
+    LSHIFT,     0,         0,              0,             BRIGHT_DEC,    BRIGHT_INC,    0,              KEY_1,      KEY_2,     KEY_3,      KEY_ENTER,      RSHIFT,
+                MATH_NOT,  0,              KEY_PAGE_UP,   KEY_PAGE_DOWN,                                KEY_HOME,   KEY_END,   KEY_E,      KEY_ENTER,
+                                                                         0,       0,    0,
+                           KEY_LAYER1,     0,             0,             0,             0,              0,          KEY_0,     KEY_LAYER1
     ),
 };
 
