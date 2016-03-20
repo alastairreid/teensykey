@@ -1,0 +1,123 @@
+<?xml version="1.0"?>
+<root>
+<item>
+  <name>Space Cadet Support</name>
+  <item>
+    <name>Map math symbols</name>
+    <identifier>private.greek_support</identifier>
+
+    <autogen>
+      <!-- forall  -->
+      __KeyToKey__
+      KeyCode::F19,
+      KeyCode::VK_CHANGE_INPUTSOURCE_UNICODEHEXINPUT,
+      KeyCode::KEY_2, ModifierFlag::OPTION_L,
+      KeyCode::KEY_2, ModifierFlag::OPTION_L,
+      KeyCode::KEY_0, ModifierFlag::OPTION_L,
+      KeyCode::KEY_0, ModifierFlag::OPTION_L,
+      KeyCode::VK_CHANGE_INPUTSOURCE_DVORAK,
+    </autogen>
+    <autogen>
+      <!-- exists  -->
+      __KeyToKey__
+      KeyCode::PC_APPLICATION,
+      KeyCode::VK_CHANGE_INPUTSOURCE_UNICODEHEXINPUT,
+      KeyCode::KEY_2, ModifierFlag::OPTION_L,
+      KeyCode::KEY_2, ModifierFlag::OPTION_L,
+      KeyCode::KEY_0, ModifierFlag::OPTION_L,
+      KeyCode::KEY_3, ModifierFlag::OPTION_L,
+      KeyCode::VK_CHANGE_INPUTSOURCE_DVORAK,
+    </autogen>
+    <autogen>
+      <!-- and  -->
+      __KeyToKey__
+      KeyCode::F16,
+      KeyCode::VK_CHANGE_INPUTSOURCE_UNICODEHEXINPUT,
+      KeyCode::KEY_2, ModifierFlag::OPTION_L,
+      KeyCode::KEY_2, ModifierFlag::OPTION_L,
+      KeyCode::KEY_2, ModifierFlag::OPTION_L,
+      KeyCode::KEY_7, ModifierFlag::OPTION_L,
+      KeyCode::VK_CHANGE_INPUTSOURCE_DVORAK,
+    </autogen>
+    <autogen>
+      <!-- or  -->
+      __KeyToKey__
+      KeyCode::F17,
+      KeyCode::VK_CHANGE_INPUTSOURCE_UNICODEHEXINPUT,
+      KeyCode::KEY_2, ModifierFlag::OPTION_L,
+      KeyCode::KEY_2, ModifierFlag::OPTION_L,
+      KeyCode::KEY_2, ModifierFlag::OPTION_L,
+      KeyCode::KEY_8, ModifierFlag::OPTION_L,
+      KeyCode::VK_CHANGE_INPUTSOURCE_DVORAK,
+    </autogen>
+    <autogen>
+      <!-- not  -->
+      __KeyToKey__
+      KeyCode::F18,
+      KeyCode::VK_CHANGE_INPUTSOURCE_UNICODEHEXINPUT,
+      KeyCode::KEY_0, ModifierFlag::OPTION_L,
+      KeyCode::KEY_0, ModifierFlag::OPTION_L,
+      KeyCode::A,     ModifierFlag::OPTION_L,
+      KeyCode::C,     ModifierFlag::OPTION_L,
+      KeyCode::VK_CHANGE_INPUTSOURCE_DVORAK,
+    </autogen>
+
+    <autogen>
+      <!-- leftarrow  -->
+      __KeyToKey__
+      KeyCode::F12,
+      KeyCode::VK_CHANGE_INPUTSOURCE_UNICODEHEXINPUT,
+      KeyCode::KEY_2, ModifierFlag::OPTION_L,
+      KeyCode::KEY_1, ModifierFlag::OPTION_L,
+      KeyCode::KEY_9, ModifierFlag::OPTION_L,
+      KeyCode::KEY_0, ModifierFlag::OPTION_L,
+      KeyCode::VK_CHANGE_INPUTSOURCE_DVORAK,
+    </autogen>
+    <autogen>
+      <!-- rightarrow  -->
+      __KeyToKey__
+      KeyCode::F13,
+      KeyCode::VK_CHANGE_INPUTSOURCE_UNICODEHEXINPUT,
+      KeyCode::KEY_2, ModifierFlag::OPTION_L,
+      KeyCode::KEY_1, ModifierFlag::OPTION_L,
+      KeyCode::KEY_9, ModifierFlag::OPTION_L,
+      KeyCode::KEY_2, ModifierFlag::OPTION_L,
+      KeyCode::VK_CHANGE_INPUTSOURCE_DVORAK,
+    </autogen>
+    <autogen>
+      <!-- leftrightarrow  -->
+      __KeyToKey__
+      KeyCode::F11,
+      KeyCode::VK_CHANGE_INPUTSOURCE_UNICODEHEXINPUT,
+      KeyCode::KEY_2, ModifierFlag::OPTION_L,
+      KeyCode::KEY_1, ModifierFlag::OPTION_L,
+      KeyCode::KEY_9, ModifierFlag::OPTION_L,
+      KeyCode::KEY_4, ModifierFlag::OPTION_L,
+      KeyCode::VK_CHANGE_INPUTSOURCE_DVORAK,
+    </autogen>
+
+    <autogen>
+      <!-- turnstile  -->
+      __KeyToKey__
+      KeyCode::PC_INSERT,
+      KeyCode::VK_CHANGE_INPUTSOURCE_UNICODEHEXINPUT,
+      KeyCode::KEY_2, ModifierFlag::OPTION_L,
+      KeyCode::KEY_2, ModifierFlag::OPTION_L,
+      KeyCode::A,     ModifierFlag::OPTION_L,
+      KeyCode::KEY_2, ModifierFlag::OPTION_L,
+      KeyCode::VK_CHANGE_INPUTSOURCE_DVORAK,
+    </autogen>
+    <autogen>
+      <!-- lambda  -->
+      __KeyToKey__
+      KeyCode::KEYPAD_0,
+      KeyCode::VK_CHANGE_INPUTSOURCE_UNICODEHEXINPUT,
+      KeyCode::KEY_0, ModifierFlag::OPTION_L,
+      KeyCode::KEY_3, ModifierFlag::OPTION_L,
+      KeyCode::B,     ModifierFlag::OPTION_L,
+      KeyCode::B,     ModifierFlag::OPTION_L,
+      KeyCode::VK_CHANGE_INPUTSOURCE_DVORAK,
+    </autogen>
+  </item>
+</item>
+</root>
