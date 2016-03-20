@@ -504,8 +504,8 @@ static const uint16_t layers[][NUMKEYS] = {
     KEY_ESC,    KEY_A,     KEY_S,          KEY_D,         KEY_F,       KEY_G,         KEY_H,     KEY_J,      KEY_K,     KEY_L,          KEY_SEMICOLON,  KEY_BACKSLASH,
     LSHIFT,     KEY_Z,     KEY_X,          KEY_C,         KEY_V,       KEY_B,         KEY_N,     KEY_M,      KEY_COMMA, KEY_PERIOD,     KEY_SLASH,      RSHIFT,
                 KEY_TILDE, 0,              KEY_LEFT,      KEY_RIGHT,                             KEY_DOWN,   KEY_UP,    KEY_MINUS,      KEY_EQUAL,
-                                                                       LCTRL,  LALT,  RCTRL,
-                           KEY_LAYER1,     KEY_BACKSPACE, KEY_ESC,     LGUI,          RGUI,      KEY_ENTER,  KEY_SPACE, KEY_LAYER1
+                                                                       LCTRL,  LALT,  LCTRL,
+                           KEY_LAYER1,     KEY_BACKSPACE, KEY_ESC,     LGUI,          LGUI,      KEY_ENTER,  KEY_SPACE, KEY_LAYER1
     ),
     // Function key layer
     [1] =
