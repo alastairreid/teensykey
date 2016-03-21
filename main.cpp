@@ -37,6 +37,7 @@ static void clear_keys();
 static void press_key(uint8_t raw, uint8_t key);
 static void release_key(uint8_t raw);
 static void send_keys();
+static void send_unicode(uint16_t keycode);
 #if HAVE_TAPPERS
 static void clear_tappers();
 static void update_tappers();
@@ -224,6 +225,35 @@ static void release_key(uint8_t raw) {
 static void send_keys() {
     usb_keyboard_send();
 }
+
+static uint16_t hex_to_raw[16] = {
+    KEY_0, KEY_1, KEY_2, KEY_3,
+    KEY_4, KEY_5, KEY_6, KEY_7,
+    KEY_8, KEY_9, KEY_A, KEY_B,
+    KEY_C, KEY_D, KEY_E, KEY_F,
+};
+
+static void send_key(uint16_t key) {
+    keyboard_keys[0] = (uint8_t)key;
+    send_keys();
+    delay(10);
+    keyboard_keys[0] = 0;
+    send_keys();
+    delay(10);
+}
+
+static void send_unicode(uint16_t code) {
+    clear_keys();
+    send_key(KEYPAD_2);
+    keyboard_modifier_keys = (1 << LEFT_ALT);
+    for(int i = 12; i>=0; i-=4) {
+        send_key(hex_to_raw[(code >> i) & 0xf]);
+    }
+    keyboard_modifier_keys = 0;
+    send_key(KEYPAD_1);
+    clear_keys();
+}
+
 
 #if HAVE_TAPPERS
 ////////////////////////////////////////////////////////////////
@@ -418,6 +448,13 @@ static void release_sticky(uint8_t mod) {
 //            bits 7:0  = 1 << M (M is media key number)
 //     '100' - sticky modifier
 //            bits 3:0 = which modifier
+//     '101' - unicode
+//            bits 10:8 = code page
+//                '000' U+22xx Math
+//                '001' U+21xx Math arrows
+//                '010' U+03xx Greek
+//                '011' U+00xx Normal
+//            bits 7:0 = codepoint<7:0>
 //
 #define IS_MODIFIER(k) ((k) & 0x8000)
 #define IS_NORMAL(k)   ((k) & 0x4000)
@@ -429,6 +466,18 @@ static void release_sticky(uint8_t mod) {
 #if HAVE_STICKIES
 #define IS_STICKY(k)   (((k) & 0x3800) == 0x2000)
 #endif
+#define IS_UNICODE(k)  (((k) & 0x3800) == 0x2800)
+
+static uint16_t codepage[8] = {
+    0x2200,
+    0x2100,
+    0x0300,
+    0x0000,
+    0,
+    0,
+    0,
+    0,
+};
 
 #define MODIFIER(m) (0x8000 | (1 << (m)))
 #if HAVE_TAPPERS
@@ -439,6 +488,7 @@ static void release_sticky(uint8_t mod) {
 #if HAVE_STICKIES
 #define STICKY(m)   (0x2000 | (m))
 #endif
+#define UNICODE(p,c) (0x2800 | ((p) << 8) | (c))
 #define MOD(m)      MODIFIERKEY_##m
 
 #define KEY_LAYER0  MODIFIER(LAYER0)
@@ -482,18 +532,50 @@ static void release_sticky(uint8_t mod) {
 #define MUTE       MEDIA(KEY_MEDIA_MUTE)
 #define VOL_INC    MEDIA(KEY_MEDIA_VOLUME_INC)
 #define VOL_DEC    MEDIA(KEY_MEDIA_VOLUME_DEC)
-#define ARROW_LR    KEY_F11
-#define ARROW_L     KEY_F12
-#define ARROW_R     KEY_F13
 #define BRIGHT_DEC  KEY_F14
 #define BRIGHT_INC  KEY_F15
-#define MATH_AND    KEY_F16
-#define MATH_OR     KEY_F17
-#define MATH_NOT    KEY_F18
-#define MATH_FORALL KEY_F19
-#define MATH_EXISTS KEY_MENU
-#define MATH_TSTILE KEY_INSERT
-#define GRK_LAMBDA  KEYPAD_0
+
+#define PAGE_MATH_SYMBOL 0
+#define PAGE_MATH_ARROW  1
+#define PAGE_GREEK       2
+#define PAGE_NORMAL      3
+
+#define ARROW_LR    UNICODE(PAGE_MATH_ARROW,  0x94)
+#define ARROW_L     UNICODE(PAGE_MATH_ARROW,  0x90)
+#define ARROW_R     UNICODE(PAGE_MATH_ARROW,  0x92)
+#define MATH_AND    UNICODE(PAGE_MATH_SYMBOL, 0x27)
+#define MATH_OR     UNICODE(PAGE_MATH_SYMBOL, 0x28)
+#define MATH_NOT    UNICODE(PAGE_NORMAL,      0xAC)
+#define MATH_FORALL UNICODE(PAGE_MATH_SYMBOL, 0x00)
+#define MATH_EXISTS UNICODE(PAGE_MATH_SYMBOL, 0x03)
+#define MATH_TSTILE UNICODE(PAGE_MATH_SYMBOL, 0xA2)
+
+#define GRK_A       UNICODE(PAGE_GREEK, 0xb1)
+#define GRK_B       UNICODE(PAGE_GREEK, 0xb2)
+#define GRK_C       UNICODE(PAGE_GREEK, 0xb3)
+#define GRK_D       UNICODE(PAGE_GREEK, 0xb4)
+#define GRK_E       UNICODE(PAGE_GREEK, 0xb5)
+#define GRK_F       UNICODE(PAGE_GREEK, 0xc6)
+#define GRK_G       UNICODE(PAGE_GREEK, 0xc2)
+#define GRK_H       UNICODE(PAGE_GREEK, 0xb7)
+#define GRK_I       UNICODE(PAGE_GREEK, 0xb9)
+#define GRK_J       UNICODE(PAGE_GREEK, 0xbe)
+#define GRK_K       UNICODE(PAGE_GREEK, 0xba)
+#define GRK_L       UNICODE(PAGE_GREEK, 0xbb)
+#define GRK_M       UNICODE(PAGE_GREEK, 0xbc)
+#define GRK_N       UNICODE(PAGE_GREEK, 0xbd)
+#define GRK_O       UNICODE(PAGE_GREEK, 0xbf)
+#define GRK_P       UNICODE(PAGE_GREEK, 0xc0)
+#define GRK_Q       UNICODE(PAGE_GREEK, 0xb8)
+#define GRK_R       UNICODE(PAGE_GREEK, 0xc1)
+#define GRK_S       UNICODE(PAGE_GREEK, 0xc3)
+#define GRK_T       UNICODE(PAGE_GREEK, 0xc4)
+#define GRK_U       UNICODE(PAGE_GREEK, 0xc5)
+#define GRK_V       UNICODE(PAGE_GREEK, 0xc6)
+#define GRK_W       UNICODE(PAGE_GREEK, 0xc9)
+#define GRK_X       UNICODE(PAGE_GREEK, 0xc7)
+#define GRK_Y       UNICODE(PAGE_GREEK, 0xc8)
+#define GRK_Z       UNICODE(PAGE_GREEK, 0xb6)
 
 static const uint16_t layers[][NUMKEYS] = {
     // Qwerty / Software Dvorak
@@ -505,7 +587,7 @@ static const uint16_t layers[][NUMKEYS] = {
     LSHIFT,     KEY_Z,     KEY_X,          KEY_C,         KEY_V,       KEY_B,         KEY_N,     KEY_M,      KEY_COMMA, KEY_PERIOD,     KEY_SLASH,      RSHIFT,
                 KEY_TILDE, 0,              KEY_LEFT,      KEY_RIGHT,                             KEY_DOWN,   KEY_UP,    KEY_MINUS,      KEY_EQUAL,
                                                                        LCTRL,  LALT,  LCTRL,
-                           KEY_LAYER1,     KEY_BACKSPACE, KEY_ESC,     LGUI,          LGUI,      KEY_ENTER,  KEY_SPACE, KEY_LAYER1
+                           KEY_LAYER1,     KEY_BACKSPACE, KEY_ESC,     LGUI,          RGUI,      KEY_ENTER,  KEY_SPACE, KEY_LAYER1
     ),
     // Function key layer
     [1] =
@@ -649,6 +731,12 @@ static void decode() {
                 keyboard_media_keys |= media;
             } else {
                 keyboard_media_keys &= ~media;
+            }
+        } else if (IS_UNICODE(keycode)) {
+            if (down) {
+                uint8_t  page = (keycode >> 8) & 0x7;
+                uint16_t codepoint = codepage[page] | (keycode & 0xff);
+                send_unicode(codepoint);
             }
         } else {
             // ignore anything else
