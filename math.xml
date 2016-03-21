@@ -4,7 +4,7 @@
   <name>Space Cadet Support</name>
   <item>
     <name>Map math symbols</name>
-    <identifier>private.greek_support</identifier>
+    <identifier>private.math_support</identifier>
 
     <autogen>
       <!-- forall  -->
