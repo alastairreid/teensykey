@@ -550,32 +550,59 @@ static uint16_t codepage[8] = {
 #define MATH_EXISTS UNICODE(PAGE_MATH_SYMBOL, 0x03)
 #define MATH_TSTILE UNICODE(PAGE_MATH_SYMBOL, 0xA2)
 
-#define GRK_A       UNICODE(PAGE_GREEK, 0xb1)
-#define GRK_B       UNICODE(PAGE_GREEK, 0xb2)
-#define GRK_C       UNICODE(PAGE_GREEK, 0xb3)
-#define GRK_D       UNICODE(PAGE_GREEK, 0xb4)
-#define GRK_E       UNICODE(PAGE_GREEK, 0xb5)
-#define GRK_F       UNICODE(PAGE_GREEK, 0xc6)
-#define GRK_G       UNICODE(PAGE_GREEK, 0xc2)
-#define GRK_H       UNICODE(PAGE_GREEK, 0xb7)
-#define GRK_I       UNICODE(PAGE_GREEK, 0xb9)
-#define GRK_J       UNICODE(PAGE_GREEK, 0xbe)
-#define GRK_K       UNICODE(PAGE_GREEK, 0xba)
-#define GRK_L       UNICODE(PAGE_GREEK, 0xbb)
-#define GRK_M       UNICODE(PAGE_GREEK, 0xbc)
-#define GRK_N       UNICODE(PAGE_GREEK, 0xbd)
-#define GRK_O       UNICODE(PAGE_GREEK, 0xbf)
-#define GRK_P       UNICODE(PAGE_GREEK, 0xc0)
-#define GRK_Q       UNICODE(PAGE_GREEK, 0xb8)
-#define GRK_R       UNICODE(PAGE_GREEK, 0xc1)
-#define GRK_S       UNICODE(PAGE_GREEK, 0xc3)
-#define GRK_T       UNICODE(PAGE_GREEK, 0xc4)
-#define GRK_U       UNICODE(PAGE_GREEK, 0xc5)
-#define GRK_V       UNICODE(PAGE_GREEK, 0xc6)
-#define GRK_W       UNICODE(PAGE_GREEK, 0xc9)
-#define GRK_X       UNICODE(PAGE_GREEK, 0xc7)
-#define GRK_Y       UNICODE(PAGE_GREEK, 0xc8)
-#define GRK_Z       UNICODE(PAGE_GREEK, 0xb6)
+#define GRK_a       UNICODE(PAGE_GREEK, 0xb1)
+#define GRK_b       UNICODE(PAGE_GREEK, 0xb2)
+#define GRK_c       UNICODE(PAGE_GREEK, 0xb3)
+#define GRK_d       UNICODE(PAGE_GREEK, 0xb4)
+#define GRK_e       UNICODE(PAGE_GREEK, 0xb5)
+#define GRK_f       UNICODE(PAGE_GREEK, 0xc6)
+#define GRK_g       UNICODE(PAGE_GREEK, 0xc2)
+#define GRK_h       UNICODE(PAGE_GREEK, 0xb7)
+#define GRK_i       UNICODE(PAGE_GREEK, 0xb9)
+#define GRK_j       UNICODE(PAGE_GREEK, 0xbe)
+#define GRK_k       UNICODE(PAGE_GREEK, 0xba)
+#define GRK_l       UNICODE(PAGE_GREEK, 0xbb)
+#define GRK_m       UNICODE(PAGE_GREEK, 0xbc)
+#define GRK_n       UNICODE(PAGE_GREEK, 0xbd)
+#define GRK_o       UNICODE(PAGE_GREEK, 0xbf)
+#define GRK_p       UNICODE(PAGE_GREEK, 0xc0)
+#define GRK_q       UNICODE(PAGE_GREEK, 0xb8)
+#define GRK_r       UNICODE(PAGE_GREEK, 0xc1)
+#define GRK_s       UNICODE(PAGE_GREEK, 0xc3)
+#define GRK_t       UNICODE(PAGE_GREEK, 0xc4)
+#define GRK_u       UNICODE(PAGE_GREEK, 0xc5)
+#define GRK_v       UNICODE(PAGE_GREEK, 0xc6)
+#define GRK_w       UNICODE(PAGE_GREEK, 0xc9)
+#define GRK_x       UNICODE(PAGE_GREEK, 0xc7)
+#define GRK_y       UNICODE(PAGE_GREEK, 0xc8)
+#define GRK_z       UNICODE(PAGE_GREEK, 0xb6)
+
+#define GRK_A       UNICODE(PAGE_GREEK, 0x91)
+#define GRK_B       UNICODE(PAGE_GREEK, 0x92)
+#define GRK_C       UNICODE(PAGE_GREEK, 0x93)
+#define GRK_D       UNICODE(PAGE_GREEK, 0x94)
+#define GRK_E       UNICODE(PAGE_GREEK, 0x95)
+#define GRK_F       UNICODE(PAGE_GREEK, 0xa6)
+//#define GRK_G       UNICODE(PAGE_GREEK, 0xa2)
+#define GRK_H       UNICODE(PAGE_GREEK, 0x97)
+#define GRK_I       UNICODE(PAGE_GREEK, 0x99)
+#define GRK_J       UNICODE(PAGE_GREEK, 0x9e)
+#define GRK_K       UNICODE(PAGE_GREEK, 0x9a)
+#define GRK_L       UNICODE(PAGE_GREEK, 0x9b)
+#define GRK_M       UNICODE(PAGE_GREEK, 0x9c)
+#define GRK_N       UNICODE(PAGE_GREEK, 0x9d)
+#define GRK_O       UNICODE(PAGE_GREEK, 0x9f)
+#define GRK_P       UNICODE(PAGE_GREEK, 0xa0)
+#define GRK_Q       UNICODE(PAGE_GREEK, 0x98)
+#define GRK_R       UNICODE(PAGE_GREEK, 0xa1)
+#define GRK_S       UNICODE(PAGE_GREEK, 0xa3)
+#define GRK_T       UNICODE(PAGE_GREEK, 0xa4)
+#define GRK_U       UNICODE(PAGE_GREEK, 0xa5)
+#define GRK_V       UNICODE(PAGE_GREEK, 0xa6)
+#define GRK_W       UNICODE(PAGE_GREEK, 0xa9)
+#define GRK_X       UNICODE(PAGE_GREEK, 0xa7)
+#define GRK_Y       UNICODE(PAGE_GREEK, 0xa8)
+#define GRK_Z       UNICODE(PAGE_GREEK, 0x96)
 
 static const uint16_t layers[][NUMKEYS] = {
     // Qwerty / Software Dvorak
@@ -587,18 +614,40 @@ static const uint16_t layers[][NUMKEYS] = {
     LSHIFT,     KEY_Z,     KEY_X,          KEY_C,         KEY_V,       KEY_B,         KEY_N,     KEY_M,      KEY_COMMA, KEY_PERIOD,     KEY_SLASH,      RSHIFT,
                 KEY_TILDE, 0,              KEY_LEFT,      KEY_RIGHT,                             KEY_DOWN,   KEY_UP,    KEY_MINUS,      KEY_EQUAL,
                                                                        LCTRL,  LALT,  LCTRL,
-                           KEY_LAYER1,     KEY_BACKSPACE, KEY_ESC,     LGUI,          RGUI,      KEY_ENTER,  KEY_SPACE, KEY_LAYER1
+                           KEY_LAYER2,     KEY_BACKSPACE, KEY_ESC,     LGUI,          RGUI,      KEY_ENTER,  KEY_SPACE, KEY_LAYER2
     ),
     // Function key layer
     [1] =
     LAYER(
     VOL_INC,    KEY_F1,    KEY_F2,         KEY_F3,        KEY_F4,        KEY_F5,        KEY_F6,         KEY_F7,     KEY_F8,    KEY_F9,     KEY_F10,        NEXT_TRK,
-    MUTE,       ARROW_LR,  ARROW_L,        ARROW_R,       MATH_TSTILE,   GRK_LAMBDA,    0,              KEY_7,      KEY_8,     KEY_9,      KEY_QUOTE,      PLAY_PAUSE,
+    MUTE,       ARROW_LR,  ARROW_L,        ARROW_R,       MATH_TSTILE,   GRK_L,         0,              KEY_7,      KEY_8,     KEY_9,      KEY_QUOTE,      PLAY_PAUSE,
     VOL_DEC,    MATH_AND,  MATH_OR,        MATH_EXISTS,   MATH_FORALL,   MATH_NOT,      0,              KEY_4,      KEY_5,     KEY_6,      KEY_RIGHT_CURL, PREV_TRK,
-    LSHIFT,     0,         0,              0,             BRIGHT_DEC,    BRIGHT_INC,    0,              KEY_1,      KEY_2,     KEY_3,      KEY_ENTER,      RSHIFT,
+    0,          0,         0,              0,             BRIGHT_DEC,    BRIGHT_INC,    0,              KEY_1,      KEY_2,     KEY_3,      KEY_ENTER,      0,
                 MATH_NOT,  0,              KEY_PAGE_UP,   KEY_PAGE_DOWN,                                KEY_HOME,   KEY_END,   KEY_E,      KEY_ENTER,
                                                                          0,       0,    0,
-                           KEY_LAYER1,     0,             0,             0,             0,              0,          KEY_0,     KEY_LAYER1
+                           0,              0,             0,             0,             0,              0,          KEY_0,     0
+    ),
+    // Lowercase Greek Dvorak
+    [2] =
+    LAYER(
+    0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
+    0,          0,         0,              0,             GRK_p,       GRK_y,         GRK_f,     GRK_g,      GRK_c,     GRK_r,          GRK_l,          0,
+    0,          GRK_a,     GRK_o,          GRK_e,         GRK_u,       GRK_i,         GRK_d,     GRK_h,      GRK_n,     GRK_t,          GRK_s,          0,
+    0,          0,         GRK_q,          GRK_j,         GRK_k,       GRK_x,         GRK_b,     GRK_m,      GRK_w,     GRK_v,          GRK_z,          0,
+                0,         0,              0,             0,                                     0,          0,         0,              0,
+                                                                       0,      0,     0,
+                           0,              0,             0,           0,             0,         0,          0,         0
+    ),
+    // Uppercase Greek Dvorak
+    [3] =
+    LAYER(
+    0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
+    0,          0,         0,              0,             GRK_P,       GRK_Y,         GRK_F,     GRK_G,      GRK_C,     GRK_R,          GRK_L,          0,
+    0,          GRK_A,     GRK_O,          GRK_E,         GRK_U,       GRK_I,         GRK_D,     GRK_H,      GRK_N,     GRK_T,          GRK_S,          0,
+    0,          0,         GRK_Q,          GRK_J,         GRK_K,       GRK_X,         GRK_B,     GRK_M,      GRK_W,     GRK_V,          GRK_Z,          0,
+                0,         0,              0,             0,                                     0,          0,         0,              0,
+                                                                       0,      0,     0,
+                           0,              0,             0,           0,             0,         0,          0,         0
     ),
 };
 
