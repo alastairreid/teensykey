@@ -572,11 +572,11 @@ static uint16_t codepage[8] = {
 #define GRK_r       UNICODE(PAGE_GREEK, 0xc1)
 #define GRK_s       UNICODE(PAGE_GREEK, 0xc3)
 #define GRK_t       UNICODE(PAGE_GREEK, 0xc4)
-#define GRK_u       UNICODE(PAGE_GREEK, 0xc5)
+#define GRK_y       UNICODE(PAGE_GREEK, 0xc5)
 #define GRK_v       UNICODE(PAGE_GREEK, 0xc6)
 #define GRK_w       UNICODE(PAGE_GREEK, 0xc9)
 #define GRK_x       UNICODE(PAGE_GREEK, 0xc7)
-#define GRK_y       UNICODE(PAGE_GREEK, 0xc8)
+#define GRK_u       UNICODE(PAGE_GREEK, 0xc8)
 #define GRK_z       UNICODE(PAGE_GREEK, 0xb6)
 
 #define GRK_A       UNICODE(PAGE_GREEK, 0x91)
@@ -599,11 +599,11 @@ static uint16_t codepage[8] = {
 #define GRK_R       UNICODE(PAGE_GREEK, 0xa1)
 #define GRK_S       UNICODE(PAGE_GREEK, 0xa3)
 #define GRK_T       UNICODE(PAGE_GREEK, 0xa4)
-#define GRK_U       UNICODE(PAGE_GREEK, 0xa5)
+#define GRK_Y       UNICODE(PAGE_GREEK, 0xa5)
 #define GRK_V       UNICODE(PAGE_GREEK, 0xa6)
 #define GRK_W       UNICODE(PAGE_GREEK, 0xa9)
 #define GRK_X       UNICODE(PAGE_GREEK, 0xa7)
-#define GRK_Y       UNICODE(PAGE_GREEK, 0xa8)
+#define GRK_U       UNICODE(PAGE_GREEK, 0xa8)
 #define GRK_Z       UNICODE(PAGE_GREEK, 0x96)
 
 static const uint16_t layers[][NUMKEYS] = {
@@ -613,10 +613,10 @@ static const uint16_t layers[][NUMKEYS] = {
     KEY_RIGHT_BRACE, KEY_1,KEY_2,          KEY_3,         KEY_4,       KEY_5,         KEY_6,     KEY_7,      KEY_8,     KEY_9,          KEY_0,          KEY_QUOTE,
     KEY_TAB,    KEY_Q,     KEY_W,          KEY_E,         KEY_R,       KEY_T,         KEY_Y,     KEY_U,      KEY_I,     KEY_O,          KEY_P,          KEY_LEFT_BRACE,
     KEY_ESC,    KEY_A,     KEY_S,          KEY_D,         KEY_F,       KEY_G,         KEY_H,     KEY_J,      KEY_K,     KEY_L,          KEY_SEMICOLON,  KEY_BACKSLASH,
-    LSHIFT,     KEY_Z,     KEY_X,          KEY_C,         KEY_V,       KEY_B,         KEY_N,     KEY_M,      KEY_COMMA, KEY_PERIOD,     KEY_SLASH,      RSHIFT,
+    LSHIFT,     KEY_Z,     KEY_X,          KEY_C,         KEY_V,       KEY_B,         KEY_N,     KEY_M,      KEY_COMMA, KEY_PERIOD,     KEY_SLASH,      LSHIFT,
                 KEY_TILDE, 0,              KEY_LEFT,      KEY_RIGHT,                             KEY_DOWN,   KEY_UP,    KEY_MINUS,      KEY_EQUAL,
                                                                        LCTRL,  LALT,  LCTRL,
-                           KEY_LAYER1,     KEY_BACKSPACE, KEY_ESC,     LGUI,          RGUI,      KEY_ENTER,  KEY_SPACE, KEY_LAYER1
+                           RCTRL,          KEY_BACKSPACE, KEY_ESC,     LGUI,          LGUI,      KEY_ENTER,  KEY_SPACE, RCTRL
     ),
     // Function key layer
     [1] =
@@ -693,8 +693,11 @@ static void release_modifier(uint8_t mod) {
     }
 }
 
+uint16_t raw_modifiers = 0;
+
 // decode raw keypresses and put in USB buffer or tapper buffer
 static void decode() {
+    enabled_layers = 1;
     // first resolve any tappers and modifiers - which may affect
     // the meaning of other keys and which layers are enabled
     for(int i = 0; i < raw_count; ++i) {
@@ -717,11 +720,27 @@ static void decode() {
 #endif
         if (IS_MODIFIER(keycode)) { // modifier key
             if (down) {
+                raw_modifiers          |= (keycode & 0xff);
                 enabled_layers         |= ((keycode >> LAYER0) & 0xf);
             } else {
+                raw_modifiers          &= ~(keycode & 0xff);
                 enabled_layers         &= ~((keycode >> LAYER0) & 0xf);
             }
         }
+    }
+
+    if (raw_modifiers == ((1 << RIGHT_CTRL))) {
+        enabled_layers = 3;
+        keyboard_modifier_keys = 0;
+    } else if (raw_modifiers == ((1 << RIGHT_CTRL) | (1 << LEFT_GUI))) {
+        enabled_layers = 5;
+        keyboard_modifier_keys = 0;
+    } else if (raw_modifiers == ((1 << RIGHT_CTRL) | (1 << LEFT_GUI) | (1 << LEFT_SHIFT))) {
+        enabled_layers = 9;
+        keyboard_modifier_keys = 0;
+    } else {
+        enabled_layers = 1;
+        keyboard_modifier_keys = raw_modifiers & 0xf;
     }
 
     // now deal with any keys
@@ -732,13 +751,7 @@ static void decode() {
         uint16_t keycode = find_key(raw);
 
         // search layers for keycode
-        if (IS_MODIFIER(keycode)) { // modifier key
-            if (down) {
-                keyboard_modifier_keys |= (keycode & 0xff);
-            } else {
-                keyboard_modifier_keys &= ~(keycode & 0xff);
-            }
-        } else if (IS_NORMAL(keycode)) { // normal key
+        if (IS_NORMAL(keycode)) { // normal key
 #if HAVE_STICKIES
             resolve_stickies(down);
 #endif
