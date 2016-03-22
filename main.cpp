@@ -622,7 +622,7 @@ static const uint16_t layers[][NUMKEYS] = {
     VOL_INC,    KEY_F1,    KEY_F2,         KEY_F3,        KEY_F4,        KEY_F5,        KEY_F6,         KEY_F7,     KEY_F8,    KEY_F9,     KEY_F10,        NEXT_TRK,
     MUTE,       ARROW_LR,  ARROW_L,        ARROW_R,       MATH_TSTILE,   GRK_l,         0,              KEY_7,      KEY_8,     KEY_9,      KEY_QUOTE,      PLAY_PAUSE,
     VOL_DEC,    MATH_AND,  MATH_OR,        MATH_EXISTS,   MATH_FORALL,   MATH_NOT,      0,              KEY_4,      KEY_5,     KEY_6,      KEY_RIGHT_CURL, PREV_TRK,
-    0,          0,         0,              0,             BRIGHT_DEC,    BRIGHT_INC,    0,              KEY_1,      KEY_2,     KEY_3,      KEY_ENTER,      0,
+    0,          GRK_a,     GRK_b,          GRK_c,         BRIGHT_DEC,    BRIGHT_INC,    0,              KEY_1,      KEY_2,     KEY_3,      KEY_ENTER,      0,
                 MATH_NOT,  0,              KEY_PAGE_UP,   KEY_PAGE_DOWN,                                KEY_HOME,   KEY_END,   KEY_E,      KEY_ENTER,
                                                                          0,       0,    0,
                            0,              0,             0,             0,             0,              0,          KEY_0,     0
