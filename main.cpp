@@ -614,7 +614,7 @@ static const uint16_t layers[][NUMKEYS] = {
     LSHIFT,     KEY_Z,     KEY_X,          KEY_C,         KEY_V,       KEY_B,         KEY_N,     KEY_M,      KEY_COMMA, KEY_PERIOD,     KEY_SLASH,      RSHIFT,
                 KEY_TILDE, 0,              KEY_LEFT,      KEY_RIGHT,                             KEY_DOWN,   KEY_UP,    KEY_MINUS,      KEY_EQUAL,
                                                                        LCTRL,  LALT,  LCTRL,
-                           KEY_LAYER2,     KEY_BACKSPACE, KEY_ESC,     LGUI,          RGUI,      KEY_ENTER,  KEY_SPACE, KEY_LAYER2
+                           KEY_LAYER1,     KEY_BACKSPACE, KEY_ESC,     LGUI,          RGUI,      KEY_ENTER,  KEY_SPACE, KEY_LAYER1
     ),
     // Function key layer
     [1] =
@@ -642,7 +642,7 @@ static const uint16_t layers[][NUMKEYS] = {
     [3] =
     LAYER(
     0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
-    0,          0,         0,              0,             GRK_P,       GRK_Y,         GRK_F,     GRK_G,      GRK_C,     GRK_R,          GRK_L,          0,
+    0,          0,         0,              0,             GRK_P,       GRK_Y,         GRK_F,     GRK_g,      GRK_C,     GRK_R,          GRK_L,          0,
     0,          GRK_A,     GRK_O,          GRK_E,         GRK_U,       GRK_I,         GRK_D,     GRK_H,      GRK_N,     GRK_T,          GRK_S,          0,
     0,          0,         GRK_Q,          GRK_J,         GRK_K,       GRK_X,         GRK_B,     GRK_M,      GRK_W,     GRK_V,          GRK_Z,          0,
                 0,         0,              0,             0,                                     0,          0,         0,              0,
