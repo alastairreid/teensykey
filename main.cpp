@@ -549,6 +549,8 @@ static uint16_t codepage[8] = {
 #define MATH_FORALL UNICODE(PAGE_MATH_SYMBOL, 0x00)
 #define MATH_EXISTS UNICODE(PAGE_MATH_SYMBOL, 0x03)
 #define MATH_TSTILE UNICODE(PAGE_MATH_SYMBOL, 0xA2)
+#define MATH_DIVIDE UNICODE(PAGE_NORMAL,      0xF7)
+#define MATH_TIMES  UNICODE(PAGE_NORMAL,      0xD7)
 
 #define GRK_a       UNICODE(PAGE_GREEK, 0xb1)
 #define GRK_b       UNICODE(PAGE_GREEK, 0xb2)
@@ -620,8 +622,8 @@ static const uint16_t layers[][NUMKEYS] = {
     [1] =
     LAYER(
     VOL_INC,    KEY_F1,    KEY_F2,         KEY_F3,        KEY_F4,        KEY_F5,        KEY_F6,         KEY_F7,     KEY_F8,    KEY_F9,     KEY_F10,        NEXT_TRK,
-    MUTE,       ARROW_LR,  ARROW_L,        ARROW_R,       MATH_TSTILE,   GRK_l,         0,              KEY_7,      KEY_8,     KEY_9,      KEY_QUOTE,      PLAY_PAUSE,
-    VOL_DEC,    MATH_AND,  MATH_OR,        MATH_EXISTS,   MATH_FORALL,   MATH_NOT,      0,              KEY_4,      KEY_5,     KEY_6,      KEY_RIGHT_CURL, PREV_TRK,
+    MUTE,       ARROW_LR,  ARROW_L,        ARROW_R,       MATH_TSTILE,   GRK_l,         MATH_DIVIDE,    KEY_7,      KEY_8,     KEY_9,      KEY_QUOTE,      PLAY_PAUSE,
+    VOL_DEC,    MATH_AND,  MATH_OR,        MATH_EXISTS,   MATH_FORALL,   MATH_NOT,      MATH_TIMES,     KEY_4,      KEY_5,     KEY_6,      KEY_RIGHT_CURL, PREV_TRK,
     0,          GRK_a,     GRK_b,          GRK_c,         BRIGHT_DEC,    BRIGHT_INC,    0,              KEY_1,      KEY_2,     KEY_3,      KEY_ENTER,      0,
                 MATH_NOT,  0,              KEY_PAGE_UP,   KEY_PAGE_DOWN,                                KEY_HOME,   KEY_END,   KEY_E,      KEY_ENTER,
                                                                          0,       0,    0,
