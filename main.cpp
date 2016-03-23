@@ -572,11 +572,11 @@ static uint16_t codepage[8] = {
 #define GRK_r       UNICODE(PAGE_GREEK, 0xc1)
 #define GRK_s       UNICODE(PAGE_GREEK, 0xc3)
 #define GRK_t       UNICODE(PAGE_GREEK, 0xc4)
-#define GRK_y       UNICODE(PAGE_GREEK, 0xc5)
+#define GRK_u       UNICODE(PAGE_GREEK, 0xc5)
 #define GRK_v       UNICODE(PAGE_GREEK, 0xc6)
 #define GRK_w       UNICODE(PAGE_GREEK, 0xc9)
 #define GRK_x       UNICODE(PAGE_GREEK, 0xc7)
-#define GRK_u       UNICODE(PAGE_GREEK, 0xc8)
+#define GRK_y       UNICODE(PAGE_GREEK, 0xc8)
 #define GRK_z       UNICODE(PAGE_GREEK, 0xb6)
 
 #define GRK_A       UNICODE(PAGE_GREEK, 0x91)
@@ -599,11 +599,11 @@ static uint16_t codepage[8] = {
 #define GRK_R       UNICODE(PAGE_GREEK, 0xa1)
 #define GRK_S       UNICODE(PAGE_GREEK, 0xa3)
 #define GRK_T       UNICODE(PAGE_GREEK, 0xa4)
-#define GRK_Y       UNICODE(PAGE_GREEK, 0xa5)
+#define GRK_U       UNICODE(PAGE_GREEK, 0xa5)
 #define GRK_V       UNICODE(PAGE_GREEK, 0xa6)
 #define GRK_W       UNICODE(PAGE_GREEK, 0xa9)
 #define GRK_X       UNICODE(PAGE_GREEK, 0xa7)
-#define GRK_U       UNICODE(PAGE_GREEK, 0xa8)
+#define GRK_Y       UNICODE(PAGE_GREEK, 0xa8)
 #define GRK_Z       UNICODE(PAGE_GREEK, 0x96)
 
 static const uint16_t layers[][NUMKEYS] = {
@@ -629,24 +629,46 @@ static const uint16_t layers[][NUMKEYS] = {
                                                                          0,       0,    0,
                            0,              0,             0,             0,             0,              0,          KEY_0,     0
     ),
-    // Lowercase Greek Dvorak
+    // Uppercase Greek Dvorak
     [2] =
     LAYER(
     0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
-    0,          0,         0,              0,             GRK_p,       GRK_y,         GRK_f,     GRK_g,      GRK_c,     GRK_r,          GRK_l,          0,
-    0,          GRK_a,     GRK_o,          GRK_e,         GRK_u,       GRK_i,         GRK_d,     GRK_h,      GRK_n,     GRK_t,          GRK_s,          0,
-    0,          0,         GRK_q,          GRK_j,         GRK_k,       GRK_x,         GRK_b,     GRK_m,      GRK_w,     GRK_v,          GRK_z,          0,
+    0,          0,         0,              0,             GRK_P,       GRK_Y,         GRK_F,     GRK_g,      GRK_C,     GRK_R,          GRK_L,          0,
+    0,          GRK_A,     GRK_O,          GRK_E,         GRK_U,       GRK_I,         GRK_D,     GRK_H,      GRK_T,     GRK_N,          GRK_S,          0,
+    0,          0,         GRK_Q,          GRK_J,         GRK_K,       GRK_X,         GRK_B,     GRK_M,      GRK_W,     GRK_V,          GRK_Z,          0,
                 0,         0,              0,             0,                                     0,          0,         0,              0,
                                                                        0,      0,     0,
                            0,              0,             0,           0,             0,         0,          0,         0
     ),
-    // Uppercase Greek Dvorak
+    // Unused
     [3] =
     LAYER(
     0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
-    0,          0,         0,              0,             GRK_P,       GRK_Y,         GRK_F,     GRK_g,      GRK_C,     GRK_R,          GRK_L,          0,
-    0,          GRK_A,     GRK_O,          GRK_E,         GRK_U,       GRK_I,         GRK_D,     GRK_H,      GRK_N,     GRK_T,          GRK_S,          0,
-    0,          0,         GRK_Q,          GRK_J,         GRK_K,       GRK_X,         GRK_B,     GRK_M,      GRK_W,     GRK_V,          GRK_Z,          0,
+    0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
+    0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
+    0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
+                0,         0,              0,             0,                                     0,          0,         0,              0,
+                                                                       0,      0,     0,
+                           0,              0,             0,           0,             0,         0,          0,         0
+    ),
+    // Unused
+    [4] =
+    LAYER(
+    0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
+    0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
+    0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
+    0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
+                0,         0,              0,             0,                                     0,          0,         0,              0,
+                                                                       0,      0,     0,
+                           0,              0,             0,           0,             0,         0,          0,         0
+    ),
+    // Lowercase Greek Dvorak
+    [5] =
+    LAYER(
+    0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
+    0,          0,         0,              0,             GRK_p,       GRK_y,         GRK_f,     GRK_g,      GRK_c,     GRK_r,          GRK_l,          0,
+    0,          GRK_a,     GRK_o,          GRK_e,         GRK_u,       GRK_i,         GRK_d,     GRK_h,      GRK_t,     GRK_n,          GRK_s,          0,
+    0,          0,         GRK_q,          GRK_j,         GRK_k,       GRK_x,         GRK_b,     GRK_m,      GRK_w,     GRK_v,          GRK_z,          0,
                 0,         0,              0,             0,                                     0,          0,         0,              0,
                                                                        0,      0,     0,
                            0,              0,             0,           0,             0,         0,          0,         0
@@ -729,14 +751,20 @@ static void decode() {
         }
     }
 
-    if (raw_modifiers == ((1 << RIGHT_CTRL))) {
+    if (raw_modifiers == ((1 << RIGHT_CTRL))) { // fn key
         enabled_layers = 3;
         keyboard_modifier_keys = 0;
-    } else if (raw_modifiers == ((1 << RIGHT_CTRL) | (1 << LEFT_GUI))) {
+    } else if (raw_modifiers == ((1 << RIGHT_CTRL) | (1 << LEFT_CTRL))) { // uppercase greek
         enabled_layers = 5;
         keyboard_modifier_keys = 0;
-    } else if (raw_modifiers == ((1 << RIGHT_CTRL) | (1 << LEFT_GUI) | (1 << LEFT_SHIFT))) {
+    } else if (raw_modifiers == ((1 << RIGHT_CTRL) | (1 << LEFT_SHIFT))) { // unused
         enabled_layers = 9;
+        keyboard_modifier_keys = 0;
+    } else if (raw_modifiers == ((1 << RIGHT_CTRL) | (1 << LEFT_ALT))) { // unused
+        enabled_layers = 17;
+        keyboard_modifier_keys = 0;
+    } else if (raw_modifiers == ((1 << RIGHT_CTRL) | (1 << LEFT_GUI))) { // lowercase greek
+        enabled_layers = 33;
         keyboard_modifier_keys = 0;
     } else {
         enabled_layers = 1;
