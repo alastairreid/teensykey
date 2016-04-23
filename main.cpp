@@ -538,9 +538,12 @@ static uint16_t codepage[8] = {
 #define BRIGHT_DEC  KEY_F14
 #define BRIGHT_INC  KEY_F15
 
-#define ARROW_LR           UNICODE(PAGE_MATH_ARROW,  0x94)
 #define ARROW_L            UNICODE(PAGE_MATH_ARROW,  0x90)
+#define ARROW_U            UNICODE(PAGE_MATH_ARROW,  0x91)
 #define ARROW_R            UNICODE(PAGE_MATH_ARROW,  0x92)
+#define ARROW_D            UNICODE(PAGE_MATH_ARROW,  0x93)
+#define ARROW_LR           UNICODE(PAGE_MATH_ARROW,  0x94)
+#define ARROW_UD           UNICODE(PAGE_MATH_ARROW,  0x95)
 #define MATH_AND           UNICODE(PAGE_MATH_SYMBOL, 0x27)
 #define MATH_OR            UNICODE(PAGE_MATH_SYMBOL, 0x28)
 #define MATH_NOT           UNICODE(PAGE_NORMAL,      0xAC)
@@ -639,18 +642,18 @@ static const uint16_t layers[][NUMKEYS] = {
                            RCTRL,          KEY_BACKSPACE, KEY_ESC,     LGUI,          LGUI,      KEY_ENTER,  KEY_SPACE, RCTRL
     ),
     // Function key layer
-    [1] =
+    [1] = // FN
     LAYER(
     VOL_INC,    KEY_F1,    KEY_F2,         KEY_F3,        KEY_F4,        KEY_F5,        KEY_F6,         KEY_F7,     KEY_F8,    KEY_F9,     KEY_F10,        NEXT_TRK,
     MUTE,       ARROW_LR,  ARROW_L,        ARROW_R,       MATH_TSTILE,   GRK_l,         MATH_DIVIDE,    KEY_7,      KEY_8,     KEY_9,      KEY_QUOTE,      PLAY_PAUSE,
     VOL_DEC,    MATH_AND,  MATH_OR,        MATH_EXISTS,   MATH_FORALL,   MATH_NOT,      MATH_TIMES,     KEY_4,      KEY_5,     KEY_6,      KEY_RIGHT_CURL, PREV_TRK,
     0,          GRK_a,     GRK_b,          GRK_c,         BRIGHT_DEC,    BRIGHT_INC,    0,              KEY_1,      KEY_2,     KEY_3,      KEY_ENTER,      0,
-                MATH_NOT,  0,              KEY_PAGE_UP,   KEY_PAGE_DOWN,                                KEY_END,    KEY_HOME,  MATH_LFATB, MATH_RFATB,
+                MATH_LFATP,MATH_RFATP,     KEY_PAGE_UP,   KEY_PAGE_DOWN,                                KEY_END,    KEY_HOME,  MATH_LFATB, MATH_RFATB,
                                                                          0,       0,    0,
                            0,              0,             0,             0,             0,              0,          KEY_0,     0
     ),
     // Uppercase Greek Dvorak
-    [2] =
+    [2] = // CTRL FN
     LAYER(
     0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
     0,          0,         0,              0,             GRK_P,       GRK_Y,         GRK_F,     GRK_g,      GRK_C,     GRK_R,          GRK_L,          0,
@@ -661,18 +664,18 @@ static const uint16_t layers[][NUMKEYS] = {
                            0,              0,             0,           0,             0,         0,          0,         0
     ),
     // Unused
-    [3] =
+    [3] = // SHIFT FN
     LAYER(
     0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
+    0,          ARROW_UD,  ARROW_D,        ARROW_U,       0,           0,             0,         0,          0,         0,              0,              0,
     0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
     0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
-    0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
-                0,         0,              0,             0,                                     0,          0,         0,              0,
+                0,         0,              0,             0,                                     0,          0,         MATH_LFATC,     MATH_RFATC,
                                                                        0,      0,     0,
                            0,              0,             0,           0,             0,         0,          0,         0
     ),
     // Unused
-    [4] =
+    [4] = // ALT FN
     LAYER(
     0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
     0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
@@ -683,7 +686,7 @@ static const uint16_t layers[][NUMKEYS] = {
                            0,              0,             0,           0,             0,         0,          0,         0
     ),
     // Lowercase Greek Dvorak
-    [5] =
+    [5] = // GUI FN
     LAYER(
     0,          0,         0,              0,             0,           0,             0,         0,          0,         0,              0,              0,
     0,          0,         0,              0,             GRK_p,       GRK_y,         GRK_f,     GRK_g,      GRK_c,     GRK_r,          GRK_l,          0,
