@@ -449,11 +449,7 @@ static void release_sticky(uint8_t mod) {
 //     '100' - sticky modifier
 //            bits 3:0 = which modifier
 //     '101' - unicode
-//            bits 10:8 = code page
-//                '000' U+22xx Math
-//                '001' U+21xx Math arrows
-//                '010' U+03xx Greek
-//                '011' U+00xx Normal
+//            bits 10:8 = code page (see codepage array below)
 //            bits 7:0 = codepoint<7:0>
 //
 #define IS_MODIFIER(k) ((k) & 0x8000)
@@ -468,13 +464,20 @@ static void release_sticky(uint8_t mod) {
 #endif
 #define IS_UNICODE(k)  (((k) & 0x3800) == 0x2800)
 
+#define PAGE_MATH_ARROW    0
+#define PAGE_MATH_SYMBOL   1
+#define PAGE_MATH_SYMBOLA  2
+#define PAGE_MATH_SYMBOLB  3
+#define PAGE_GREEK         4
+#define PAGE_NORMAL        5
+
 static uint16_t codepage[8] = {
-    0x2200,
-    0x2100,
-    0x0300,
-    0x0000,
-    0,
-    0,
+    [PAGE_MATH_ARROW]=     0x2100,
+    [PAGE_MATH_SYMBOL]=    0x2200,
+    [PAGE_MATH_SYMBOLA]=   0x2700,
+    [PAGE_MATH_SYMBOLB]=   0x2900,
+    [PAGE_GREEK]=          0x0300,
+    [PAGE_NORMAL]=         0x0000,
     0,
     0,
 };
@@ -535,22 +538,39 @@ static uint16_t codepage[8] = {
 #define BRIGHT_DEC  KEY_F14
 #define BRIGHT_INC  KEY_F15
 
-#define PAGE_MATH_SYMBOL 0
-#define PAGE_MATH_ARROW  1
-#define PAGE_GREEK       2
-#define PAGE_NORMAL      3
+#define ARROW_LR           UNICODE(PAGE_MATH_ARROW,  0x94)
+#define ARROW_L            UNICODE(PAGE_MATH_ARROW,  0x90)
+#define ARROW_R            UNICODE(PAGE_MATH_ARROW,  0x92)
+#define MATH_AND           UNICODE(PAGE_MATH_SYMBOL, 0x27)
+#define MATH_OR            UNICODE(PAGE_MATH_SYMBOL, 0x28)
+#define MATH_NOT           UNICODE(PAGE_NORMAL,      0xAC)
+#define MATH_FORALL        UNICODE(PAGE_MATH_SYMBOL, 0x00)
+#define MATH_EXISTS        UNICODE(PAGE_MATH_SYMBOL, 0x03)
+#define MATH_TSTILE        UNICODE(PAGE_MATH_SYMBOL, 0xA2)
+#define MATH_DIVIDE        UNICODE(PAGE_NORMAL,      0xF7)
+#define MATH_TIMES         UNICODE(PAGE_NORMAL,      0xD7)
+// better using alt-= combo already supported
+// #define MATH_NOTEQ         UNICODE(PAGE_MATH_SYMBOL, 0x60)
 
-#define ARROW_LR    UNICODE(PAGE_MATH_ARROW,  0x94)
-#define ARROW_L     UNICODE(PAGE_MATH_ARROW,  0x90)
-#define ARROW_R     UNICODE(PAGE_MATH_ARROW,  0x92)
-#define MATH_AND    UNICODE(PAGE_MATH_SYMBOL, 0x27)
-#define MATH_OR     UNICODE(PAGE_MATH_SYMBOL, 0x28)
-#define MATH_NOT    UNICODE(PAGE_NORMAL,      0xAC)
-#define MATH_FORALL UNICODE(PAGE_MATH_SYMBOL, 0x00)
-#define MATH_EXISTS UNICODE(PAGE_MATH_SYMBOL, 0x03)
-#define MATH_TSTILE UNICODE(PAGE_MATH_SYMBOL, 0xA2)
-#define MATH_DIVIDE UNICODE(PAGE_NORMAL,      0xF7)
-#define MATH_TIMES  UNICODE(PAGE_NORMAL,      0xD7)
+// Various forms of parentheses
+#define MATH_LBAG          UNICODE(PAGE_MATH_SYMBOLA,0xC5)
+#define MATH_RBAG          UNICODE(PAGE_MATH_SYMBOLA,0xC6)
+#define MATH_LFATB         UNICODE(PAGE_MATH_SYMBOLA,0xE6)
+#define MATH_RFATB         UNICODE(PAGE_MATH_SYMBOLA,0xE7)
+#define MATH_LANGLE        UNICODE(PAGE_MATH_SYMBOLA,0xE8)
+#define MATH_RANGLE        UNICODE(PAGE_MATH_SYMBOLA,0xE9)
+#define MATH_LDANGLE       UNICODE(PAGE_MATH_SYMBOLA,0xEA)
+#define MATH_RDANGLE       UNICODE(PAGE_MATH_SYMBOLA,0xEB)
+#define MATH_LTORTOISE     UNICODE(PAGE_MATH_SYMBOLA,0xEC)
+#define MATH_RTORTOISE     UNICODE(PAGE_MATH_SYMBOLA,0xED)
+#define MATH_LFATC         UNICODE(PAGE_MATH_SYMBOLB,0x83)
+#define MATH_RFATC         UNICODE(PAGE_MATH_SYMBOLB,0x84)
+#define MATH_LFATP         UNICODE(PAGE_MATH_SYMBOLB,0x85)
+#define MATH_RFATP         UNICODE(PAGE_MATH_SYMBOLB,0x86)
+#define MATH_LSTRTPAREN    UNICODE(PAGE_MATH_SYMBOLB,0x87)
+#define MATH_RSTRTPAREN    UNICODE(PAGE_MATH_SYMBOLB,0x88)
+#define MATH_LSTRTANGLE    UNICODE(PAGE_MATH_SYMBOLB,0x89)
+#define MATH_RSTRTANGLE    UNICODE(PAGE_MATH_SYMBOLB,0x8A)
 
 #define GRK_a       UNICODE(PAGE_GREEK, 0xb1)
 #define GRK_b       UNICODE(PAGE_GREEK, 0xb2)
@@ -625,7 +645,7 @@ static const uint16_t layers[][NUMKEYS] = {
     MUTE,       ARROW_LR,  ARROW_L,        ARROW_R,       MATH_TSTILE,   GRK_l,         MATH_DIVIDE,    KEY_7,      KEY_8,     KEY_9,      KEY_QUOTE,      PLAY_PAUSE,
     VOL_DEC,    MATH_AND,  MATH_OR,        MATH_EXISTS,   MATH_FORALL,   MATH_NOT,      MATH_TIMES,     KEY_4,      KEY_5,     KEY_6,      KEY_RIGHT_CURL, PREV_TRK,
     0,          GRK_a,     GRK_b,          GRK_c,         BRIGHT_DEC,    BRIGHT_INC,    0,              KEY_1,      KEY_2,     KEY_3,      KEY_ENTER,      0,
-                MATH_NOT,  0,              KEY_PAGE_UP,   KEY_PAGE_DOWN,                                KEY_END,    KEY_HOME,  KEY_E,      KEY_ENTER,
+                MATH_NOT,  0,              KEY_PAGE_UP,   KEY_PAGE_DOWN,                                KEY_END,    KEY_HOME,  MATH_LFATB, MATH_RFATB,
                                                                          0,       0,    0,
                            0,              0,             0,             0,             0,              0,          KEY_0,     0
     ),
